@@ -1,6 +1,15 @@
 import UIKit
 
 final class TrackersViewController: UIViewController {
+    var categories: [TrackerCategory] = []
+    var completedTrackers: [TrackerRecord] = []
+    
+    private let collectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        return collectionView
+    }()
     
     private let stubView: UIImageView = {
         let stub = UIImageView(image: UIImage(named: "trackerStub"))
@@ -32,17 +41,31 @@ final class TrackersViewController: UIViewController {
         ])
     }
     
+    private func setupCollectionView() {
+        view.addSubview(collectionView)
+        
+        NSLayoutConstraint.activate([
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+        ])
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        collectionView.register(TrackerCell.self, forCellWithReuseIdentifier: TrackerCell.identifier)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.customWhite
         setupNavigationController()
+        setupCollectionView()
         if true {
             setupStub()
         }
     }
     
     private func setupNavigationController() {
-    
         let button = UIBarButtonItem(
             image: UIImage(named: "plusButton"),
             style: .plain,
@@ -53,6 +76,7 @@ final class TrackersViewController: UIViewController {
         self.navigationItem.leftBarButtonItem = button
         
         let datePicker = UIDatePicker()
+        datePicker.preferredDatePickerStyle = .compact
         datePicker.datePickerMode = .date
         datePicker.date = Date()
         let dateItem = UIBarButtonItem(customView: datePicker)
@@ -71,6 +95,25 @@ final class TrackersViewController: UIViewController {
     }
     
     @objc func plusButtonTapped() {
-        
+        let trackerSelectionController = TrackerSelectionViewController()
+        present(trackerSelectionController, animated: true)
+    }
+}
+
+
+extension TrackersViewController: UICollectionViewDelegate {
+    
+}
+
+extension TrackersViewController: UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TrackerCell.identifier, for: indexPath) as? TrackerCell else {
+            return UICollectionViewCell()
+        }
+        return cell
     }
 }
