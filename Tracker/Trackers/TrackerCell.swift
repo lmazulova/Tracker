@@ -2,12 +2,17 @@ import UIKit
 
 final class TrackerCell: UICollectionViewCell {
     static let identifier = "trackerCell"
-    
+    // MARK: - Initialization
     override init(frame: CGRect) {
         super.init(frame: frame)
 //        contentView.addSubview()
     }
     
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    // MARK: - Private Properties
     private let card: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 16
@@ -40,8 +45,4 @@ final class TrackerCell: UICollectionViewCell {
         
         return view
     }()
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
 }

@@ -2,6 +2,7 @@ import UIKit
 
 final class TrackerSelectionViewController: UIViewController {
     
+    // MARK: - Private Properties
     private let habitButton: UIButton = {
         let button = UIButton(type: .custom)
         button.backgroundColor = .customBlack
@@ -24,6 +25,7 @@ final class TrackerSelectionViewController: UIViewController {
     
     private let navigationBar = UINavigationBar()
     
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .customWhite
@@ -32,20 +34,27 @@ final class TrackerSelectionViewController: UIViewController {
         
     }
     
+    // MARK: - UI Configuration
     private func setupConstraintsAndActions() {
-        view.addSubview(habitButton)
-        view.addSubview(irregularEventButton)
+        let stackView = UIStackView(arrangedSubviews: [habitButton, irregularEventButton])
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.axis = .vertical
+        stackView.spacing = 16
+        stackView.alignment = .center
+        view.addSubview(stackView)
+        
         habitButton.addTarget(self, action: #selector(habitButtonTapped), for: .touchUpInside)
         irregularEventButton.addTarget(self, action: #selector(irregularEventButtonTapped), for: .touchUpInside)
         
         NSLayoutConstraint.activate([
-            habitButton.topAnchor.constraint(equalTo: navigationBar.bottomAnchor, constant: 281),
-            habitButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            habitButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            stackView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor, constant: 114/2),
+            habitButton.leadingAnchor.constraint(equalTo: stackView.leadingAnchor),
+            habitButton.trailingAnchor.constraint(equalTo: stackView.trailingAnchor),
             habitButton.heightAnchor.constraint(equalToConstant: 60),
-            irregularEventButton.topAnchor.constraint(equalTo: habitButton.bottomAnchor, constant: 16),
-            irregularEventButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            irregularEventButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            irregularEventButton.leadingAnchor.constraint(equalTo: stackView.leadingAnchor),
+            irregularEventButton.trailingAnchor.constraint(equalTo: stackView.trailingAnchor),
             irregularEventButton.heightAnchor.constraint(equalToConstant: 60)
         ])
     }
@@ -53,7 +62,6 @@ final class TrackerSelectionViewController: UIViewController {
     private func setupNavigationBar() {
         navigationBar.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(navigationBar)
-        
         let title = UINavigationItem(title: "Создание трекера")
         navigationBar.setItems([title], animated: false)
         navigationBar.titleTextAttributes = [
@@ -67,12 +75,14 @@ final class TrackerSelectionViewController: UIViewController {
         
         
         NSLayoutConstraint.activate([
+            navigationBar.heightAnchor.constraint(equalToConstant: 114),
             navigationBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             navigationBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            navigationBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor)
+            navigationBar.topAnchor.constraint(equalTo: view.topAnchor)
         ])
     }
     
+    // MARK: - Actions
     @objc func habitButtonTapped() {
         let habitCreationViewController = HabitCreationViewController()
         present(habitCreationViewController, animated: true)
@@ -82,7 +92,6 @@ final class TrackerSelectionViewController: UIViewController {
         let irregularEventCreationViewController = IrregularEventCreationViewController()
         present(irregularEventCreationViewController, animated: true)
     }
-    
 }
 
 

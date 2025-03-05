@@ -20,7 +20,7 @@
 		CEFB2E112D68C610002CF95C /* TrackersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFB2E102D68C610002CF95C /* TrackersViewController.swift */; };
 		CEFB2E132D68C67D002CF95C /* StatisticsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFB2E122D68C67D002CF95C /* StatisticsViewController.swift */; };
 		CEFB2E162D68D508002CF95C /* NavigationBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFB2E152D68D508002CF95C /* NavigationBarController.swift */; };
-		CEFB2E7F2D70AD8F002CF95C /* Tracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFB2E7E2D70AD8F002CF95C /* Tracker.swift */; };
+		CEFB2E7F2D70AD8F002CF95C /* Tracker&Schedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFB2E7E2D70AD8F002CF95C /* Tracker&Schedule.swift */; };
 		CEFB2E812D70ADA1002CF95C /* TrackerCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFB2E802D70ADA1002CF95C /* TrackerCategory.swift */; };
 		CEFB2E832D70ADAF002CF95C /* TrackerRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFB2E822D70ADAF002CF95C /* TrackerRecord.swift */; };
 /* End PBXBuildFile section */
@@ -41,7 +41,7 @@
 		CEFB2E102D68C610002CF95C /* TrackersViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackersViewController.swift; sourceTree = "<group>"; };
 		CEFB2E122D68C67D002CF95C /* StatisticsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsViewController.swift; sourceTree = "<group>"; };
 		CEFB2E152D68D508002CF95C /* NavigationBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationBarController.swift; sourceTree = "<group>"; };
-		CEFB2E7E2D70AD8F002CF95C /* Tracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tracker.swift; sourceTree = "<group>"; };
+		CEFB2E7E2D70AD8F002CF95C /* Tracker&Schedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tracker&Schedule.swift"; sourceTree = "<group>"; };
 		CEFB2E802D70ADA1002CF95C /* TrackerCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerCategory.swift; sourceTree = "<group>"; };
 		CEFB2E822D70ADAF002CF95C /* TrackerRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerRecord.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -57,6 +57,33 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		CE22280E2D78717000E8F2C6 /* TrackerCreation */ = {
+			isa = PBXGroup;
+			children = (
+				CEEED9132D75E13A008FAB02 /* TrackerSelectionViewController.swift */,
+				CE22280F2D7871A500E8F2C6 /* HabitCreation */,
+				CE2228102D7871B800E8F2C6 /* IrregularEventCreation */,
+			);
+			path = TrackerCreation;
+			sourceTree = "<group>";
+		};
+		CE22280F2D7871A500E8F2C6 /* HabitCreation */ = {
+			isa = PBXGroup;
+			children = (
+				CEEED9152D75F408008FAB02 /* HabitCreationViewController.swift */,
+				CEEED9192D77307B008FAB02 /* ScheduleViewController.swift */,
+			);
+			path = HabitCreation;
+			sourceTree = "<group>";
+		};
+		CE2228102D7871B800E8F2C6 /* IrregularEventCreation */ = {
+			isa = PBXGroup;
+			children = (
+				CEEED9172D75F44B008FAB02 /* IrregularEventCreationViewController.swift */,
+			);
+			path = IrregularEventCreation;
+			sourceTree = "<group>";
+		};
 		CEFB2DED2D689649002CF95C = {
 			isa = PBXGroup;
 			children = (
@@ -103,10 +130,7 @@
 			children = (
 				CEFB2E102D68C610002CF95C /* TrackersViewController.swift */,
 				CEEED9112D75D955008FAB02 /* TrackerCell.swift */,
-				CEEED9132D75E13A008FAB02 /* TrackerSelectionViewController.swift */,
-				CEEED9152D75F408008FAB02 /* HabitCreationViewController.swift */,
-				CEEED9172D75F44B008FAB02 /* IrregularEventCreationViewController.swift */,
-				CEEED9192D77307B008FAB02 /* ScheduleViewController.swift */,
+				CE22280E2D78717000E8F2C6 /* TrackerCreation */,
 			);
 			path = Trackers;
 			sourceTree = "<group>";
@@ -130,7 +154,7 @@
 		CEFB2E7D2D70AD56002CF95C /* TrackerStructures */ = {
 			isa = PBXGroup;
 			children = (
-				CEFB2E7E2D70AD8F002CF95C /* Tracker.swift */,
+				CEFB2E7E2D70AD8F002CF95C /* Tracker&Schedule.swift */,
 				CEFB2E802D70ADA1002CF95C /* TrackerCategory.swift */,
 				CEFB2E822D70ADAF002CF95C /* TrackerRecord.swift */,
 			);
@@ -220,7 +244,7 @@
 				CEFB2DFA2D689649002CF95C /* AppDelegate.swift in Sources */,
 				CEEED9182D75F44B008FAB02 /* IrregularEventCreationViewController.swift in Sources */,
 				CEFB2DFC2D689649002CF95C /* SceneDelegate.swift in Sources */,
-				CEFB2E7F2D70AD8F002CF95C /* Tracker.swift in Sources */,
+				CEFB2E7F2D70AD8F002CF95C /* Tracker&Schedule.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

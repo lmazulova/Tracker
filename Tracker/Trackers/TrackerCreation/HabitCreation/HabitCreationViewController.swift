@@ -2,15 +2,8 @@
 import UIKit
 
 final class HabitCreationViewController: UIViewController {
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = .customWhite
-        tableView.delegate = self
-        tableView.dataSource = self
-        setupNavigationBar()
-        setupConstraints()
-        setupActions()
-    }
+    // MARK: - Private Properties
+    // UI Elements
     private let textFieldView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 16
@@ -48,7 +41,6 @@ final class HabitCreationViewController: UIViewController {
         return button
     }()
     
-    
     private let createButton: UIButton = {
         let button = UIButton(type: .custom)
         button.layer.cornerRadius = 16
@@ -56,7 +48,6 @@ final class HabitCreationViewController: UIViewController {
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         button.backgroundColor = UIColor.customGray
         button.setTitleColor(UIColor.white, for: .normal)
-        button.titleLabel?.textColor = UIColor.white
         button.translatesAutoresizingMaskIntoConstraints = false
         
         return button
@@ -70,15 +61,31 @@ final class HabitCreationViewController: UIViewController {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         tableView.rowHeight = 75
-        tableView.register(ItemsCell.self, forCellReuseIdentifier: "cell")
+        tableView.register(ItemsCell.self, forCellReuseIdentifier: ItemsCell.identifier)
         return tableView
     }()
+    
+    // MARK: - Lifecycle
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .customWhite
+        tableView.delegate = self
+        tableView.dataSource = self
+        setupNavigationBar()
+        setupConstraints()
+        setupActions()
+    }
+    
+    // MARK: - UI Configuration
     private func setupConstraints() {
         view.addSubview(textFieldView)
         view.addSubview(cancelButton)
         view.addSubview(createButton)
         view.addSubview(tableView)
         NSLayoutConstraint.activate([
+            navigationBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            navigationBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            navigationBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             textFieldView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             textFieldView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             textFieldView.topAnchor.constraint(equalTo: navigationBar.bottomAnchor, constant: 24),
@@ -117,14 +124,9 @@ final class HabitCreationViewController: UIViewController {
         navigationBar.barTintColor = .customWhite
         navigationBar.isTranslucent = false
         navigationBar.shadowImage = UIImage()
-        
-        NSLayoutConstraint.activate([
-            navigationBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            navigationBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            navigationBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor)
-        ])
     }
     
+    // MARK: - Actions
     @objc
     func cancelButtonTapped() {
         (0..<2).forEach{ _ in
@@ -140,20 +142,24 @@ final class HabitCreationViewController: UIViewController {
     }
 }
 
+
+// MARK: - UITableViewDelegate
 extension HabitCreationViewController: UITableViewDelegate {
     
-    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if indexPath.section == 0 {
-            
-        }
-        else {
+        switch indexPath.row {
+        case 0:
+            return
+        case 1:
             let scheduleViewController = ScheduleViewController()
             present(scheduleViewController, animated: false)
+        default:
+            return
         }
     }
 }
 
+// MARK: - UITableViewDataSource
 extension HabitCreationViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -161,7 +167,7 @@ extension HabitCreationViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "cell") else {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: ItemsCell.identifier) else {
             return UITableViewCell()
         }
         if indexPath.row == 0 {
@@ -174,7 +180,10 @@ extension HabitCreationViewController: UITableViewDataSource {
     }
 }
 
+// MARK: - UITableViewCell
 final class ItemsCell: UITableViewCell {
+    
+    static let identifier = "Item cell"
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         self.backgroundColor = .clear
