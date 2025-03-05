@@ -9,13 +9,7 @@ struct Tracker {
 }
 
 struct Schedule {
-    let Monday: Bool
-    let Tuesday: Bool
-    let Wednesday: Bool
-    let Thursday: Bool
-    let Friday: Bool
-    let Saturday: Bool
-    let Sunday: Bool
+    let days: [WeekDay]
 }
 
 enum WeekDay: String, CaseIterable {

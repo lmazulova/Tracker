@@ -5,7 +5,7 @@ final class TrackerCell: UICollectionViewCell {
     // MARK: - Initialization
     override init(frame: CGRect) {
         super.init(frame: frame)
-//        contentView.addSubview()
+        setupCellConstraints()
     }
     
     required init?(coder: NSCoder) {
@@ -13,6 +13,7 @@ final class TrackerCell: UICollectionViewCell {
     }
     
     // MARK: - Private Properties
+  
     private let card: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 16
@@ -28,21 +29,91 @@ final class TrackerCell: UICollectionViewCell {
         return label
     }()
     
-    private let emoji: UIView = {
-        let view = UIView()
-        view.layer.cornerRadius = 68
-        view.backgroundColor = UIColor.customWhite
-        view.alpha = 30
-        let emoji = UILabel()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        emoji.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(emoji)
+    private let emojiLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         
-        NSLayoutConstraint.activate([
-            emoji.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            emoji.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-        ])
+        return label
+    }()
+    
+    private let emojiView: UIView = {
+        let view = UIView()
+        view.layer.cornerRadius = 12
+        view.backgroundColor = UIColor.white
+        view.alpha = 0.3
+        view.translatesAutoresizingMaskIntoConstraints = false
         
         return view
     }()
+    
+    private let QuantityManagementView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        return view
+    }()
+    
+    private let dayCounterLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
+        label.textColor = UIColor.customBlack
+        label.translatesAutoresizingMaskIntoConstraints = false
+        
+        return label
+    }()
+    
+    private let plusButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.layer.cornerRadius = 17
+        button.setImage(UIImage(systemName: "plus"), for: .normal)
+        button.tintColor = UIColor.white
+        button.translatesAutoresizingMaskIntoConstraints = false
+        
+        return button
+    }()
+    private func setupCellConstraints() {
+        contentView.addSubview(card)
+        contentView.addSubview(QuantityManagementView)
+        QuantityManagementView.addSubview(dayCounterLabel)
+        QuantityManagementView.addSubview(plusButton)
+        card.addSubview(cardText)
+        card.addSubview(emojiView)
+        card.addSubview(emojiLabel)
+
+        NSLayoutConstraint.activate([
+            card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            card.topAnchor.constraint(equalTo: contentView.topAnchor),
+            card.heightAnchor.constraint(equalToConstant: 90),
+            cardText.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
+            cardText.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
+            cardText.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12),
+            emojiView.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
+            emojiView.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
+            emojiView.heightAnchor.constraint(equalToConstant: 24),
+            emojiView.widthAnchor.constraint(equalToConstant: 24),
+            emojiLabel.centerXAnchor.constraint(equalTo: emojiView.centerXAnchor),
+            emojiLabel.centerYAnchor.constraint(equalTo: emojiView.centerYAnchor),
+            emojiLabel.heightAnchor.constraint(equalToConstant: 22),
+            QuantityManagementView.topAnchor.constraint(equalTo: card.bottomAnchor),
+            QuantityManagementView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            QuantityManagementView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            QuantityManagementView.heightAnchor.constraint(equalToConstant: 58),
+            dayCounterLabel.leadingAnchor.constraint(equalTo: QuantityManagementView.leadingAnchor, constant: 12),
+            dayCounterLabel.centerYAnchor.constraint(equalTo: plusButton.centerYAnchor),
+            plusButton.trailingAnchor.constraint(equalTo: QuantityManagementView.trailingAnchor, constant: -12),
+            plusButton.topAnchor.constraint(equalTo: QuantityManagementView.topAnchor, constant: 8),
+            plusButton.bottomAnchor.constraint(equalTo: QuantityManagementView.bottomAnchor, constant: -16),
+            plusButton.heightAnchor.constraint(equalTo: plusButton.widthAnchor)
+        ])
+    }
+  
+    func configureCell(for tracker: Tracker) {
+        emojiLabel.text = tracker.emoji
+        cardText.text = tracker.title
+        card.backgroundColor = tracker.color
+        plusButton.backgroundColor = tracker.color
+        dayCounterLabel.text = "1 день"
+    }
 }

@@ -40,10 +40,13 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - UI Configuration
     private func configureUI() {
-        setupCollectionView()
         setupNavigationController()
         if categories.isEmpty {
-            setupStub()
+//            setupStub()
+            setupCollectionView()
+        }
+        else {
+            setupCollectionView()
         }
     }
     
@@ -68,8 +71,8 @@ final class TrackersViewController: UIViewController {
         view.addSubview(collectionView)
         
         NSLayoutConstraint.activate([
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
@@ -123,13 +126,24 @@ extension TrackersViewController: UICollectionViewDelegate {
 // MARK: - UICollectionViewDataSource
 extension TrackersViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        0
+        2
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TrackerCell.identifier, for: indexPath) as? TrackerCell else {
             return UICollectionViewCell()
         }
+        let tracker = Tracker(id: UUID(), title: "Нужно что-то сделать", color: UIColor.colorSelection1, emoji: "😻", schedule: Schedule(days: [.friday]))
+        cell.configureCell(for: tracker)
         return cell
+    }
+}
+
+extension TrackersViewController: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: 167, height: 148)
+    }
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 9
     }
 }
