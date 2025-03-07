@@ -6,6 +6,13 @@ final class TrackersViewController: UIViewController {
     var categories: [TrackerCategory] = []
     var completedTrackers: [TrackerRecord] = []
     
+    private let params = GeometricParams(
+        cellCount: 2,
+        leftInset: 16,
+        rightInset: 16,
+        cellSpacing: 9
+    )
+    
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
@@ -42,7 +49,7 @@ final class TrackersViewController: UIViewController {
     private func configureUI() {
         setupNavigationController()
         if categories.isEmpty {
-//            setupStub()
+            //            setupStub()
             setupCollectionView()
         }
         else {
@@ -57,7 +64,7 @@ final class TrackersViewController: UIViewController {
         stackView.spacing = 8
         stackView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(stackView)
-
+        
         NSLayoutConstraint.activate([
             stubImageView.heightAnchor.constraint(equalToConstant: 80),
             stubImageView.widthAnchor.constraint(equalToConstant: 80),
@@ -71,8 +78,8 @@ final class TrackersViewController: UIViewController {
         view.addSubview(collectionView)
         
         NSLayoutConstraint.activate([
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
@@ -125,8 +132,12 @@ extension TrackersViewController: UICollectionViewDelegate {
 
 // MARK: - UICollectionViewDataSource
 extension TrackersViewController: UICollectionViewDataSource {
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        categories.count
+    }
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        2
+        return categories.isEmpty ? 0 : categories[section].trackersInCategory.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -141,8 +152,14 @@ extension TrackersViewController: UICollectionViewDataSource {
 
 extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: 167, height: 148)
+        let availableWidth = collectionView.frame.width - params.paddingWidth
+        return CGSize(width: availableWidth/CGFloat(params.cellCount), height: availableWidth/CGFloat(params.cellCount)*0.89)
     }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets(top: 24, left: params.leftInset, bottom: 0, right: params.rightInset)
+    }
+    
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
         return 9
     }

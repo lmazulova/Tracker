@@ -3,18 +3,48 @@ import UIKit
 
 final class HabitCreationViewController: UIViewController {
     // MARK: - Private Properties
+    private let characterLimit = 38
+    
     // UI Elements
-    private let textFieldView: UIView = {
+    private lazy var textField: UITextField = {
+        let textField = UITextField()
+        textField.placeholder = "Введите название трекера"
+        textField.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+        textField.textColor = UIColor.customBlack
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.rightViewMode = .whileEditing
+        textField.autocorrectionType = .no
+        textField.spellCheckingType = .no
+        textField.smartQuotesType = .no
+        textField.smartDashesType = .no
+        textField.smartInsertDeleteType = .no
+        
+        let deleteButton = UIButton(type: .custom)
+        deleteButton.setImage(UIImage(named: "deleteButton"), for: .normal)
+        deleteButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        let buttonView = UIView()
+        buttonView.translatesAutoresizingMaskIntoConstraints = false
+        buttonView.addSubview(deleteButton)
+        
+        NSLayoutConstraint.activate([
+            deleteButton.trailingAnchor.constraint(equalTo: buttonView.trailingAnchor),
+            deleteButton.widthAnchor.constraint(equalToConstant: 17),
+            deleteButton.heightAnchor.constraint(equalToConstant: 17),
+            buttonView.widthAnchor.constraint(equalToConstant: 29)
+        ])
+        
+        deleteButton.addTarget(self, action: #selector(clearTextField), for: .touchUpInside)
+        textField.rightView = buttonView
+        
+        return textField
+    }()
+    
+    private lazy var textFieldView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 16
         view.backgroundColor = .customBackground
         view.translatesAutoresizingMaskIntoConstraints = false
-        
-        let textField = UITextField()
-        textField.placeholder = "Введите название трекера"
-        textField.font = UIFont.systemFont(ofSize: 17, weight: .regular)
-        textField.translatesAutoresizingMaskIntoConstraints = false
-        
         view.addSubview(textField)
         NSLayoutConstraint.activate([
             textField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
@@ -23,6 +53,17 @@ final class HabitCreationViewController: UIViewController {
         ])
         
         return view
+    }()
+    
+    private lazy var warningLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Ограничение \(characterLimit) символов"
+        label.textColor = UIColor.customRed
+        label.textAlignment = .center
+        label.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        
+        return label
     }()
     
     private let navigationBar = UINavigationBar()
@@ -78,7 +119,13 @@ final class HabitCreationViewController: UIViewController {
     
     // MARK: - UI Configuration
     private func setupConstraints() {
-        view.addSubview(textFieldView)
+        let textFieldStack = UIStackView(arrangedSubviews: [textFieldView, warningLabel])
+        textFieldStack.translatesAutoresizingMaskIntoConstraints = false
+        textFieldStack.axis = .vertical
+        textFieldStack.spacing = 8
+        warningLabel.isHidden = true
+        
+        view.addSubview(textFieldStack)
         view.addSubview(cancelButton)
         view.addSubview(createButton)
         view.addSubview(tableView)
@@ -86,10 +133,15 @@ final class HabitCreationViewController: UIViewController {
             navigationBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             navigationBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             navigationBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            textFieldView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            textFieldView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            textFieldView.topAnchor.constraint(equalTo: navigationBar.bottomAnchor, constant: 24),
+            textFieldStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            textFieldStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            textFieldStack.topAnchor.constraint(equalTo: navigationBar.bottomAnchor, constant: 24),
+            textFieldView.leadingAnchor.constraint(equalTo: textFieldStack.leadingAnchor),
+            textFieldView.trailingAnchor.constraint(equalTo: textFieldStack.trailingAnchor),
             textFieldView.heightAnchor.constraint(equalToConstant: 75),
+            warningLabel.leadingAnchor.constraint(equalTo: textFieldStack.leadingAnchor),
+            warningLabel.trailingAnchor.constraint(equalTo: textFieldStack.trailingAnchor),
+            warningLabel.centerXAnchor.constraint(equalTo: textFieldStack.centerXAnchor),
             cancelButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             cancelButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -34),
             cancelButton.heightAnchor.constraint(equalToConstant: 60),
@@ -98,9 +150,9 @@ final class HabitCreationViewController: UIViewController {
             createButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -34),
             createButton.heightAnchor.constraint(equalToConstant: 60),
             createButton.widthAnchor.constraint(equalTo: cancelButton.widthAnchor),
-            tableView.leadingAnchor.constraint(equalTo: textFieldView.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: textFieldView.trailingAnchor),
-            tableView.topAnchor.constraint(equalTo: textFieldView.bottomAnchor, constant: 24),
+            tableView.leadingAnchor.constraint(equalTo: textFieldStack.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: textFieldStack.trailingAnchor),
+            tableView.topAnchor.constraint(equalTo: textFieldStack.bottomAnchor, constant: 24),
             tableView.heightAnchor.constraint(equalToConstant: 150)
         ])
     }
@@ -108,6 +160,7 @@ final class HabitCreationViewController: UIViewController {
     private func setupActions() {
         cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
         createButton.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
+        textField.addTarget(self, action: #selector(characterLimitReached), for: .editingChanged)
     }
     
     private func setupNavigationBar() {
@@ -139,6 +192,26 @@ final class HabitCreationViewController: UIViewController {
     @objc
     func createButtonTapped() {
         
+    }
+    
+    @objc
+    func characterLimitReached() {
+        guard let text = textField.text else {
+            warningLabel.isHidden = true
+            return
+        }
+        if text.count > characterLimit {
+            warningLabel.isHidden = false
+        }
+        else {
+            warningLabel.isHidden = true
+        }
+    }
+    
+    @objc
+    func clearTextField() {
+        textField.text = ""
+        warningLabel.isHidden = true
     }
 }
 

@@ -6,6 +6,7 @@ final class TrackerCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupCellConstraints()
+        plusButton.addTarget(self, action: #selector(plusButtonTapped), for: .touchUpInside)
     }
     
     required init?(coder: NSCoder) {
@@ -85,7 +86,7 @@ final class TrackerCell: UICollectionViewCell {
             card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             card.topAnchor.constraint(equalTo: contentView.topAnchor),
-            card.heightAnchor.constraint(equalToConstant: 90),
+            card.heightAnchor.constraint(equalTo: contentView.heightAnchor, multiplier: 0.61),
             cardText.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
             cardText.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
             cardText.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12),
@@ -99,7 +100,7 @@ final class TrackerCell: UICollectionViewCell {
             QuantityManagementView.topAnchor.constraint(equalTo: card.bottomAnchor),
             QuantityManagementView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             QuantityManagementView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            QuantityManagementView.heightAnchor.constraint(equalToConstant: 58),
+            QuantityManagementView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             dayCounterLabel.leadingAnchor.constraint(equalTo: QuantityManagementView.leadingAnchor, constant: 12),
             dayCounterLabel.centerYAnchor.constraint(equalTo: plusButton.centerYAnchor),
             plusButton.trailingAnchor.constraint(equalTo: QuantityManagementView.trailingAnchor, constant: -12),
@@ -114,6 +115,11 @@ final class TrackerCell: UICollectionViewCell {
         cardText.text = tracker.title
         card.backgroundColor = tracker.color
         plusButton.backgroundColor = tracker.color
-        dayCounterLabel.text = "1 день"
+        dayCounterLabel.text = "0 дней"
+    }
+    
+    @objc
+    func plusButtonTapped() {
+        
     }
 }

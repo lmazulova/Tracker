@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CEDADE7F2D78C06F005E7BD3 /* GeometricParams.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDADE7E2D78C06F005E7BD3 /* GeometricParams.swift */; };
 		CEEED9122D75D955008FAB02 /* TrackerCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEED9112D75D955008FAB02 /* TrackerCell.swift */; };
 		CEEED9142D75E13A008FAB02 /* TrackerSelectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEED9132D75E13A008FAB02 /* TrackerSelectionViewController.swift */; };
 		CEEED9162D75F408008FAB02 /* HabitCreationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEED9152D75F408008FAB02 /* HabitCreationViewController.swift */; };
@@ -26,6 +27,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		CEDADE7E2D78C06F005E7BD3 /* GeometricParams.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeometricParams.swift; sourceTree = "<group>"; };
 		CEEED9112D75D955008FAB02 /* TrackerCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerCell.swift; sourceTree = "<group>"; };
 		CEEED9132D75E13A008FAB02 /* TrackerSelectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerSelectionViewController.swift; sourceTree = "<group>"; };
 		CEEED9152D75F408008FAB02 /* HabitCreationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitCreationViewController.swift; sourceTree = "<group>"; };
@@ -129,6 +131,7 @@
 			isa = PBXGroup;
 			children = (
 				CEFB2E102D68C610002CF95C /* TrackersViewController.swift */,
+				CEDADE7E2D78C06F005E7BD3 /* GeometricParams.swift */,
 				CEEED9112D75D955008FAB02 /* TrackerCell.swift */,
 				CE22280E2D78717000E8F2C6 /* TrackerCreation */,
 			);
@@ -243,6 +246,7 @@
 				CEFB2E832D70ADAF002CF95C /* TrackerRecord.swift in Sources */,
 				CEFB2DFA2D689649002CF95C /* AppDelegate.swift in Sources */,
 				CEEED9182D75F44B008FAB02 /* IrregularEventCreationViewController.swift in Sources */,
+				CEDADE7F2D78C06F005E7BD3 /* GeometricParams.swift in Sources */,
 				CEFB2DFC2D689649002CF95C /* SceneDelegate.swift in Sources */,
 				CEFB2E7F2D70AD8F002CF95C /* Tracker&Schedule.swift in Sources */,
 			);

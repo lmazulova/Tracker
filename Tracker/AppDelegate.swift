@@ -1,11 +1,3 @@
-//
-//  AppDelegate.swift
-//  Tracker
-//
-//  Created by user on 21.02.2025.
-//
-// поменяла структуру папок проекта, добавила scheduleViewController.
-//разбила содержимое папки trackers на подпапки
 
 import UIKit
 
