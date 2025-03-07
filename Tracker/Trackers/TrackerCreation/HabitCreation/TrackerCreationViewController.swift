@@ -1,10 +1,29 @@
 
 import UIKit
 
-final class HabitCreationViewController: UIViewController {
+enum ControllersIdentifier: String {
+    case habit = "Привычка"
+    case irregularEvent = "Нерегулярное событие"
+}
+
+final class TrackerCreationViewController: UIViewController {
+    
+    var identifier: ControllersIdentifier
+    
+    init(identifier: ControllersIdentifier) {
+        self.identifier = identifier
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    //т.к. тому кто реализует TrackerPresenterProtocol не нужно знать ничего о классе который управляет созданием ячейки, делегат можно сделать одностронним, и тогда приставка weak не нужна, т.к. нет условий для retain cycle
+    var delegate: TrackerPresenterProtocol?
+    
     // MARK: - Private Properties
     private let characterLimit = 38
-    
     // UI Elements
     private lazy var textField: UITextField = {
         let textField = UITextField()
@@ -152,9 +171,14 @@ final class HabitCreationViewController: UIViewController {
             createButton.widthAnchor.constraint(equalTo: cancelButton.widthAnchor),
             tableView.leadingAnchor.constraint(equalTo: textFieldStack.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: textFieldStack.trailingAnchor),
-            tableView.topAnchor.constraint(equalTo: textFieldStack.bottomAnchor, constant: 24),
-            tableView.heightAnchor.constraint(equalToConstant: 150)
+            tableView.topAnchor.constraint(equalTo: textFieldStack.bottomAnchor, constant: 24)
         ])
+        if identifier == ControllersIdentifier.habit {
+            tableView.heightAnchor.constraint(equalToConstant: 150).isActive = true
+        }
+        else {
+            tableView.heightAnchor.constraint(equalToConstant: 75).isActive = true
+        }
     }
     
     private func setupActions() {
@@ -182,16 +206,12 @@ final class HabitCreationViewController: UIViewController {
     // MARK: - Actions
     @objc
     func cancelButtonTapped() {
-        (0..<2).forEach{ _ in
-            if let presentingViewController = presentingViewController {
-            presentingViewController.dismiss(animated: true)
-            }
-        }
+        delegate?.cancelingTrackerCreation()
     }
     
     @objc
     func createButtonTapped() {
-        
+//        delegate?.addTracker(for: <#T##Tracker#>)
     }
     
     @objc
@@ -217,8 +237,7 @@ final class HabitCreationViewController: UIViewController {
 
 
 // MARK: - UITableViewDelegate
-extension HabitCreationViewController: UITableViewDelegate {
-    
+extension TrackerCreationViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         switch indexPath.row {
         case 0:
@@ -233,10 +252,11 @@ extension HabitCreationViewController: UITableViewDelegate {
 }
 
 // MARK: - UITableViewDataSource
-extension HabitCreationViewController: UITableViewDataSource {
+extension TrackerCreationViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        2
+        if identifier == ControllersIdentifier.habit { return 2}
+        return 1
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -245,6 +265,9 @@ extension HabitCreationViewController: UITableViewDataSource {
         }
         if indexPath.row == 0 {
             cell.textLabel?.text = "Категория"
+            if identifier == ControllersIdentifier.irregularEvent {
+                cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: tableView.bounds.width)
+            }
             return cell
         }
         cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: tableView.bounds.width)

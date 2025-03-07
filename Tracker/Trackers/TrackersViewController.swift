@@ -49,8 +49,7 @@ final class TrackersViewController: UIViewController {
     private func configureUI() {
         setupNavigationController()
         if categories.isEmpty {
-            //            setupStub()
-            setupCollectionView()
+            setupStub()
         }
         else {
             setupCollectionView()
@@ -163,4 +162,16 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
         return 9
     }
+}
+
+extension TrackersViewController: TrackerPresenterProtocol {
+    func cancelingTrackerCreation() {
+        self.dismiss(animated: true)
+    }
+    
+    func addTracker(for tracker: Tracker) {
+        
+    }
+    
+    
 }

@@ -7,7 +7,7 @@ final class TrackerSelectionViewController: UIViewController {
         let button = UIButton(type: .custom)
         button.backgroundColor = .customBlack
         button.layer.cornerRadius = 16
-        button.setTitle("Привычка", for: .normal)
+        button.setTitle(ControllersIdentifier.habit.rawValue, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
@@ -17,7 +17,7 @@ final class TrackerSelectionViewController: UIViewController {
         let button = UIButton(type: .custom)
         button.backgroundColor = .customBlack
         button.layer.cornerRadius = 16
-        button.setTitle("Нерегулярное событие", for: .normal)
+        button.setTitle(ControllersIdentifier.irregularEvent.rawValue, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
@@ -43,8 +43,8 @@ final class TrackerSelectionViewController: UIViewController {
         stackView.alignment = .center
         view.addSubview(stackView)
         
-        habitButton.addTarget(self, action: #selector(habitButtonTapped), for: .touchUpInside)
-        irregularEventButton.addTarget(self, action: #selector(irregularEventButtonTapped), for: .touchUpInside)
+        habitButton.addTarget(self, action: #selector(TrackerCreationButtonTapped), for: .touchUpInside)
+        irregularEventButton.addTarget(self, action: #selector(TrackerCreationButtonTapped), for: .touchUpInside)
         
         NSLayoutConstraint.activate([
             stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
@@ -83,14 +83,18 @@ final class TrackerSelectionViewController: UIViewController {
     }
     
     // MARK: - Actions
-    @objc func habitButtonTapped() {
-        let habitCreationViewController = HabitCreationViewController()
-        present(habitCreationViewController, animated: true)
-    }
-    
-    @objc func irregularEventButtonTapped() {
-        let irregularEventCreationViewController = IrregularEventCreationViewController()
-        present(irregularEventCreationViewController, animated: true)
+    @objc func TrackerCreationButtonTapped(_ button: UIButton) {
+        if let buttonTitle = button.titleLabel?.text {
+            if let identifier = ControllersIdentifier(rawValue: buttonTitle) {
+                let creationViewController = TrackerCreationViewController(identifier: identifier)
+                if let tabBarController = self.view.window?.rootViewController as? TabBarController {
+                    guard let trackerNavigationController = tabBarController.viewControllers?.first as? UINavigationController,
+                          let trackerViewController = trackerNavigationController.viewControllers.first as? TrackersViewController else { return }
+                    creationViewController.delegate = trackerViewController
+                }
+                present(creationViewController, animated: true)
+            }
+        }
     }
 }
 

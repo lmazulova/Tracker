@@ -8,9 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		CEDADE7F2D78C06F005E7BD3 /* GeometricParams.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDADE7E2D78C06F005E7BD3 /* GeometricParams.swift */; };
+		CEEC37A32D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEC37A22D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift */; };
 		CEEED9122D75D955008FAB02 /* TrackerCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEED9112D75D955008FAB02 /* TrackerCell.swift */; };
 		CEEED9142D75E13A008FAB02 /* TrackerSelectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEED9132D75E13A008FAB02 /* TrackerSelectionViewController.swift */; };
-		CEEED9162D75F408008FAB02 /* HabitCreationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEED9152D75F408008FAB02 /* HabitCreationViewController.swift */; };
+		CEEED9162D75F408008FAB02 /* TrackerCreationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEED9152D75F408008FAB02 /* TrackerCreationViewController.swift */; };
 		CEEED9182D75F44B008FAB02 /* IrregularEventCreationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEED9172D75F44B008FAB02 /* IrregularEventCreationViewController.swift */; };
 		CEEED91A2D77307B008FAB02 /* ScheduleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEED9192D77307B008FAB02 /* ScheduleViewController.swift */; };
 		CEFB2DFA2D689649002CF95C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFB2DF92D689649002CF95C /* AppDelegate.swift */; };
@@ -28,9 +29,10 @@
 
 /* Begin PBXFileReference section */
 		CEDADE7E2D78C06F005E7BD3 /* GeometricParams.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeometricParams.swift; sourceTree = "<group>"; };
+		CEEC37A22D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerPresenterProtocol.swift; sourceTree = "<group>"; };
 		CEEED9112D75D955008FAB02 /* TrackerCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerCell.swift; sourceTree = "<group>"; };
 		CEEED9132D75E13A008FAB02 /* TrackerSelectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerSelectionViewController.swift; sourceTree = "<group>"; };
-		CEEED9152D75F408008FAB02 /* HabitCreationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitCreationViewController.swift; sourceTree = "<group>"; };
+		CEEED9152D75F408008FAB02 /* TrackerCreationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerCreationViewController.swift; sourceTree = "<group>"; };
 		CEEED9172D75F44B008FAB02 /* IrregularEventCreationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IrregularEventCreationViewController.swift; sourceTree = "<group>"; };
 		CEEED9192D77307B008FAB02 /* ScheduleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleViewController.swift; sourceTree = "<group>"; };
 		CEFB2DF62D689649002CF95C /* Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -63,6 +65,7 @@
 			isa = PBXGroup;
 			children = (
 				CEEED9132D75E13A008FAB02 /* TrackerSelectionViewController.swift */,
+				CEEC37A22D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift */,
 				CE22280F2D7871A500E8F2C6 /* HabitCreation */,
 				CE2228102D7871B800E8F2C6 /* IrregularEventCreation */,
 			);
@@ -72,7 +75,7 @@
 		CE22280F2D7871A500E8F2C6 /* HabitCreation */ = {
 			isa = PBXGroup;
 			children = (
-				CEEED9152D75F408008FAB02 /* HabitCreationViewController.swift */,
+				CEEED9152D75F408008FAB02 /* TrackerCreationViewController.swift */,
 				CEEED9192D77307B008FAB02 /* ScheduleViewController.swift */,
 			);
 			path = HabitCreation;
@@ -239,12 +242,13 @@
 				CEFB2E132D68C67D002CF95C /* StatisticsViewController.swift in Sources */,
 				CEFB2E162D68D508002CF95C /* NavigationBarController.swift in Sources */,
 				CEEED91A2D77307B008FAB02 /* ScheduleViewController.swift in Sources */,
-				CEEED9162D75F408008FAB02 /* HabitCreationViewController.swift in Sources */,
+				CEEED9162D75F408008FAB02 /* TrackerCreationViewController.swift in Sources */,
 				CEFB2E812D70ADA1002CF95C /* TrackerCategory.swift in Sources */,
 				CEFB2DFE2D689649002CF95C /* TabBarController.swift in Sources */,
 				CEFB2E112D68C610002CF95C /* TrackersViewController.swift in Sources */,
 				CEFB2E832D70ADAF002CF95C /* TrackerRecord.swift in Sources */,
 				CEFB2DFA2D689649002CF95C /* AppDelegate.swift in Sources */,
+				CEEC37A32D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift in Sources */,
 				CEEED9182D75F44B008FAB02 /* IrregularEventCreationViewController.swift in Sources */,
 				CEDADE7F2D78C06F005E7BD3 /* GeometricParams.swift in Sources */,
 				CEFB2DFC2D689649002CF95C /* SceneDelegate.swift in Sources */,

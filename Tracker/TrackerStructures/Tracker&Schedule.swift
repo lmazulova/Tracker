@@ -5,7 +5,7 @@ struct Tracker {
     let title: String
     let color: UIColor
     let emoji: String
-    let schedule: Schedule
+    let schedule: Schedule?
 }
 
 struct Schedule {

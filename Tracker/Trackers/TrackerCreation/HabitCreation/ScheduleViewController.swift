@@ -1,6 +1,7 @@
 import UIKit
 
 final class ScheduleViewController: UIViewController {
+    
     // MARK: - Private Properties
     // UI Elements
     private let navigationBar = UINavigationBar()
@@ -13,7 +14,6 @@ final class ScheduleViewController: UIViewController {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         tableView.register(DayOfWeekCell.self, forCellReuseIdentifier: DayOfWeekCell.identifier)
-        tableView.rowHeight = 75
         return tableView
     }()
     
@@ -39,12 +39,16 @@ final class ScheduleViewController: UIViewController {
         setupConstraints()
     }
     
+    override func viewDidLayoutSubviews() {
+        tableView.rowHeight = max(75, (tableView.frame.height/7))
+    }
+    
     // MARK: - UI Configuration
     private func setupConstraints() {
         view.addSubview(navigationBar)
         view.addSubview(tableView)
         view.addSubview(doneButton)
-        
+        doneButton.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
         NSLayoutConstraint.activate([
             navigationBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             navigationBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -56,7 +60,7 @@ final class ScheduleViewController: UIViewController {
             tableView.topAnchor.constraint(equalTo: navigationBar.bottomAnchor, constant: 24),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            tableView.bottomAnchor.constraint(equalTo: doneButton.topAnchor, constant: -39)
+            tableView.bottomAnchor.constraint(equalTo: doneButton.topAnchor, constant: -39),
         ])
     }
 
@@ -71,6 +75,11 @@ final class ScheduleViewController: UIViewController {
         navigationBar.barTintColor = .customWhite
         navigationBar.isTranslucent = false
         navigationBar.shadowImage = UIImage()
+    }
+    
+    @objc
+    func doneButtonTapped() {
+        
     }
 }
 
