@@ -9,7 +9,7 @@ struct Tracker {
 }
 
 struct Schedule {
-    let days: [WeekDay]
+    let days: Set<WeekDay>
 }
 
 enum WeekDay: String, CaseIterable {

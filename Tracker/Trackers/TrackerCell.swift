@@ -2,6 +2,8 @@ import UIKit
 
 final class TrackerCell: UICollectionViewCell {
     static let identifier = "trackerCell"
+    var plusButtonState = false
+    
     // MARK: - Initialization
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -109,6 +111,8 @@ final class TrackerCell: UICollectionViewCell {
             plusButton.heightAnchor.constraint(equalTo: plusButton.widthAnchor)
         ])
     }
+    
+
   
     func configureCell(for tracker: Tracker) {
         emojiLabel.text = tracker.emoji

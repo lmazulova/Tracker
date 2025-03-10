@@ -5,7 +5,9 @@ final class ScheduleViewController: UIViewController {
     // MARK: - Private Properties
     // UI Elements
     private let navigationBar = UINavigationBar()
-    var selectedWeekDays: [WeekDay] = []
+    var selectedWeekDays: Set<WeekDay> = []
+    var addSchedule: ((Set<WeekDay>) -> Void)?
+    
     private let tableView: UITableView = {
         let tableView = UITableView()
         tableView.backgroundColor = .customBackground
@@ -76,16 +78,24 @@ final class ScheduleViewController: UIViewController {
         navigationBar.isTranslucent = false
         navigationBar.shadowImage = UIImage()
     }
-    
     @objc
     func doneButtonTapped() {
-        
+        addSchedule?(selectedWeekDays)
+        self.dismiss(animated: true)
     }
 }
 
 // MARK: - UITableViewDelegate
-extension ScheduleViewController: UITableViewDelegate {
-    
+extension ScheduleViewController: UITableViewDelegate&DayOfWeekCellDelegate {
+    func didToggleSwitch(for day: WeekDay, isOn: Bool) {
+        if isOn {
+            selectedWeekDays.insert(day)
+        }
+        else {
+            selectedWeekDays.remove(day)
+        }
+        print(selectedWeekDays)
+    }
 }
 
 // MARK: - UITableViewDataSource
@@ -95,54 +105,26 @@ extension ScheduleViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: DayOfWeekCell.identifier) else { return UITableViewCell()}
-        
-        switch indexPath.row {
-        case 0:
-            cell.textLabel?.text = WeekDay.monday.rawValue
-            return cell
-        case 1:
-            cell.textLabel?.text = WeekDay.tuesday.rawValue
-            return cell
-        case 2:
-            cell.textLabel?.text = WeekDay.wednesday.rawValue
-            return cell
-        case 3:
-            cell.textLabel?.text = WeekDay.thursday.rawValue
-            return cell
-        case 4:
-            cell.textLabel?.text = WeekDay.friday.rawValue
-            return cell
-        case 5:
-            cell.textLabel?.text = WeekDay.saturday.rawValue
-            return cell
-        case 6:
-            cell.textLabel?.text = WeekDay.sunday.rawValue
-            cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: tableView.bounds.width)
-            return cell
-        default:
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: DayOfWeekCell.identifier) as? DayOfWeekCell else { return UITableViewCell()}
+        let day = WeekDay.allCases[indexPath.row]
+        cell.configureCell(with: day)
+        cell.delegate = self
+        if indexPath.row == 6 {
+            cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: tableView.frame.width)
             return cell
         }
+        return cell
     }
 }
 
 // MARK: - UITableViewCell
 final class DayOfWeekCell: UITableViewCell {
     static let identifier = "Switch cell"
+    weak var delegate: DayOfWeekCellDelegate?
+    private var day: WeekDay?
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        self.backgroundColor = .clear
-        self.textLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
-        self.textLabel?.textColor = .customBlack
-        self.selectionStyle = .none
-        contentView.addSubview(switcher)
-        NSLayoutConstraint.activate([
-            switcher.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            switcher.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            switcher.widthAnchor.constraint(equalToConstant: 51),
-            switcher.heightAnchor.constraint(equalToConstant: 31)
-        ])
     }
     
     required init?(coder: NSCoder) {
@@ -155,4 +137,32 @@ final class DayOfWeekCell: UITableViewCell {
         switcher.translatesAutoresizingMaskIntoConstraints = false
         return switcher
     }()
+    
+    func configureCell(with day: WeekDay) {
+        self.backgroundColor = .clear
+        self.textLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+        self.textLabel?.textColor = .customBlack
+        self.selectionStyle = .none
+        self.textLabel?.text = day.rawValue
+        self.day = day
+        
+        contentView.addSubview(switcher)
+        NSLayoutConstraint.activate([
+            switcher.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            switcher.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            switcher.widthAnchor.constraint(equalToConstant: 51),
+            switcher.heightAnchor.constraint(equalToConstant: 31)
+        ])
+        switcher.addTarget(self, action: #selector(switchChanged), for: .valueChanged)
+    }
+    
+    @objc 
+    func switchChanged() {
+        guard let day = day else { return }
+        delegate?.didToggleSwitch(for: day, isOn: switcher.isOn)
+    }
+}
+
+protocol DayOfWeekCellDelegate: AnyObject {
+    func didToggleSwitch(for day: WeekDay, isOn: Bool)
 }

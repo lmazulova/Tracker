@@ -4,5 +4,5 @@ import Foundation
 
 protocol TrackerPresenterProtocol: AnyObject {
     func cancelingTrackerCreation()
-    func addTracker(for tracker: Tracker)
+    func addTracker(for category: TrackerCategory)
 }

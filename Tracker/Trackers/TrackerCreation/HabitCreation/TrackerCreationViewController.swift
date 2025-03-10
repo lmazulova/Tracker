@@ -8,7 +8,12 @@ enum ControllersIdentifier: String {
 
 final class TrackerCreationViewController: UIViewController {
     
+    private var scheduleSelected: Bool = false
+    private var titleFilled: Bool = false
+    
     var identifier: ControllersIdentifier
+    var schedule: Schedule?
+    var trackerTitle: String?
     
     init(identifier: ControllersIdentifier) {
         self.identifier = identifier
@@ -107,11 +112,35 @@ final class TrackerCreationViewController: UIViewController {
         button.setTitle("Создать", for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         button.backgroundColor = UIColor.customGray
-        button.setTitleColor(UIColor.white, for: .normal)
+        button.setTitleColor(UIColor.customWhite, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.isEnabled = false
         
         return button
     }()
+    
+    private func checkingButtonActivation() {
+        if titleFilled && scheduleSelected {
+            createButton.backgroundColor = UIColor.customBlack
+            createButton.isEnabled = true
+        }
+        else {
+            createButton.backgroundColor = UIColor.customGray
+            createButton.isEnabled = false
+        }
+    }
+    
+    private func setSchedule(for weekDays: Set<WeekDay>) {
+        schedule = Schedule(days: weekDays)
+        scheduleSelected = true
+        checkingButtonActivation()
+    }
+    
+    private func setTitle(title: String) {
+        trackerTitle = title
+        titleFilled = true
+        checkingButtonActivation()
+    }
     
     private let tableView: UITableView = {
         let tableView = UITableView()
@@ -211,20 +240,27 @@ final class TrackerCreationViewController: UIViewController {
     
     @objc
     func createButtonTapped() {
-//        delegate?.addTracker(for: <#T##Tracker#>)
+        let tracker = Tracker(id: UUID(), title: trackerTitle!, color: UIColor.colorSelection1, emoji: "✨", schedule: schedule!)
+        delegate?.addTracker(for: TrackerCategory(categoryTitle: "Важное", trackersInCategory: [tracker]))
+        delegate?.cancelingTrackerCreation()
     }
     
     @objc
     func characterLimitReached() {
         guard let text = textField.text else {
             warningLabel.isHidden = true
+            titleFilled = false
+            checkingButtonActivation()
             return
         }
         if text.count > characterLimit {
             warningLabel.isHidden = false
+            titleFilled = false
+            checkingButtonActivation()
         }
         else {
             warningLabel.isHidden = true
+            setTitle(title: text)
         }
     }
     
@@ -232,6 +268,8 @@ final class TrackerCreationViewController: UIViewController {
     func clearTextField() {
         textField.text = ""
         warningLabel.isHidden = true
+        titleFilled = false
+        checkingButtonActivation()
     }
 }
 
@@ -244,6 +282,10 @@ extension TrackerCreationViewController: UITableViewDelegate {
             return
         case 1:
             let scheduleViewController = ScheduleViewController()
+            scheduleViewController.addSchedule = { [weak self] selectedWeekDays in
+                guard let self = self else { return }
+                setSchedule(for: selectedWeekDays)
+            }
             present(scheduleViewController, animated: false)
         default:
             return

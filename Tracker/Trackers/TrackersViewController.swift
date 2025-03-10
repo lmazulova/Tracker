@@ -4,7 +4,7 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Private Properties
     var categories: [TrackerCategory] = []
-    var completedTrackers: [TrackerRecord] = []
+    var completedTrackers: Set<TrackerRecord> = []
     
     private let params = GeometricParams(
         cellCount: 2,
@@ -132,7 +132,7 @@ extension TrackersViewController: UICollectionViewDelegate {
 // MARK: - UICollectionViewDataSource
 extension TrackersViewController: UICollectionViewDataSource {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        categories.count
+        categories.isEmpty ? 0 : categories.count
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -143,7 +143,7 @@ extension TrackersViewController: UICollectionViewDataSource {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TrackerCell.identifier, for: indexPath) as? TrackerCell else {
             return UICollectionViewCell()
         }
-        let tracker = Tracker(id: UUID(), title: "Нужно что-то сделать", color: UIColor.colorSelection1, emoji: "😻", schedule: Schedule(days: [.friday]))
+        let tracker = categories[indexPath.section].trackersInCategory[indexPath.row]
         cell.configureCell(for: tracker)
         return cell
     }
@@ -169,9 +169,37 @@ extension TrackersViewController: TrackerPresenterProtocol {
         self.dismiss(animated: true)
     }
     
-    func addTracker(for tracker: Tracker) {
+    func addTracker(for category: TrackerCategory) {
+        var newCategories = categories
+        if let index = newCategories.firstIndex(where: {$0.categoryTitle == category.categoryTitle}) {
+            let updatedCategory = TrackerCategory(
+                categoryTitle: category.categoryTitle,
+                trackersInCategory: newCategories[index].trackersInCategory + category.trackersInCategory
+            )
+            newCategories[index] = updatedCategory
+        }
+        else {
+            newCategories.append(category)
+        }
+        categories = newCategories
         
+        collectionView.performBatchUpdates({
+            if let index = newCategories.firstIndex(where: {$0.categoryTitle == category.categoryTitle}) {
+                let count = categories.count - 1
+                
+                if index != count {
+                    collectionView.reloadSections(IndexSet(integer: index))
+                }
+                
+                else if index == 0 {
+                    collectionView.reloadSections(IndexSet(integer: index))
+                    setupCollectionView()
+                }
+                
+                else {
+                    collectionView.insertSections(IndexSet(integer: index))
+                }
+            }
+        })
     }
-    
-    
 }
