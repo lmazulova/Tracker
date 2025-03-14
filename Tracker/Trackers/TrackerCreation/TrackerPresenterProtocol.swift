@@ -1,6 +1,4 @@
-
 import Foundation
-
 
 protocol TrackerPresenterProtocol: AnyObject {
     func cancelingTrackerCreation()

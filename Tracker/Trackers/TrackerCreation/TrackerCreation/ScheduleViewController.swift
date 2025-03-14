@@ -94,7 +94,6 @@ extension ScheduleViewController: UITableViewDelegate&DayOfWeekCellDelegate {
         else {
             selectedWeekDays.remove(day)
         }
-        print(selectedWeekDays)
     }
 }
 

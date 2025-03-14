@@ -2,7 +2,10 @@ import UIKit
 
 final class TrackerCell: UICollectionViewCell {
     static let identifier = "trackerCell"
-    var plusButtonState = false
+    var trackerID: UUID?
+    var daysAmount: Int = 0
+    
+    weak var delegate: TrackerCellDelegate?
     
     // MARK: - Initialization
     override init(frame: CGRect) {
@@ -16,7 +19,6 @@ final class TrackerCell: UICollectionViewCell {
     }
     
     // MARK: - Private Properties
-  
     private let card: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 16
@@ -28,6 +30,8 @@ final class TrackerCell: UICollectionViewCell {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         label.textColor = .customWhite
+        label.numberOfLines = 0
+        label.lineBreakMode = .byWordWrapping
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -65,16 +69,49 @@ final class TrackerCell: UICollectionViewCell {
         
         return label
     }()
-    
+
     private let plusButton: UIButton = {
         let button = UIButton(type: .custom)
         button.layer.cornerRadius = 17
-        button.setImage(UIImage(systemName: "plus"), for: .normal)
-        button.tintColor = UIColor.white
+        let iconConfig = UIImage.SymbolConfiguration(pointSize: 10.6, weight: .bold)
+        let plusIcon = UIImage(systemName: "plus", withConfiguration: iconConfig)
+        button.setImage(plusIcon, for: .normal)
+        button.setImage(UIImage(named: "doneButton"), for: .selected)
         button.translatesAutoresizingMaskIntoConstraints = false
-        
+        button.tintColor = UIColor.white
+        button.adjustsImageWhenDisabled = false
         return button
     }()
+    
+    // MARK: - Private Methods
+    private func updateDayCounterLabel() {
+        if plusButton.isSelected {
+            daysAmount += 1
+        }
+        else {
+            daysAmount -= 1
+        }
+        dayCounterLabel.text = daysString()
+    }
+    
+    private func daysString() -> String {
+        let lastDigit = daysAmount % 10
+        let lastTwoDigits = daysAmount % 100
+        
+        let word: String
+        if lastTwoDigits >= 11 && lastTwoDigits <= 14 {
+            word = "дней"
+        } else if lastDigit == 1 {
+            word = "день"
+        } else if lastDigit >= 2 && lastDigit <= 4 {
+            word = "дня"
+        } else {
+            word = "дней"
+        }
+        
+        return "\(daysAmount) \(word)"
+    }
+    
     private func setupCellConstraints() {
         contentView.addSubview(card)
         contentView.addSubview(QuantityManagementView)
@@ -107,23 +144,31 @@ final class TrackerCell: UICollectionViewCell {
             dayCounterLabel.centerYAnchor.constraint(equalTo: plusButton.centerYAnchor),
             plusButton.trailingAnchor.constraint(equalTo: QuantityManagementView.trailingAnchor, constant: -12),
             plusButton.topAnchor.constraint(equalTo: QuantityManagementView.topAnchor, constant: 8),
-            plusButton.bottomAnchor.constraint(equalTo: QuantityManagementView.bottomAnchor, constant: -16),
-            plusButton.heightAnchor.constraint(equalTo: plusButton.widthAnchor)
+            plusButton.heightAnchor.constraint(equalTo: plusButton.widthAnchor),
+            plusButton.widthAnchor.constraint(equalToConstant: 34)
         ])
     }
-    
 
-  
-    func configureCell(for tracker: Tracker) {
+    func configureCell(for tracker: Tracker, with plusButtonState: Bool, counterValue: Int, currentDate: Date) {
+        trackerID = tracker.id
+        daysAmount = counterValue
         emojiLabel.text = tracker.emoji
         cardText.text = tracker.title
         card.backgroundColor = tracker.color
-        plusButton.backgroundColor = tracker.color
-        dayCounterLabel.text = "0 дней"
+        plusButton.isSelected = plusButtonState
+        plusButton.isEnabled = (currentDate == Calendar.current.startOfDay(for: Date()))
+        plusButton.backgroundColor = plusButtonState ? tracker.color.withAlphaComponent(0.3) : tracker.color
+        dayCounterLabel.text = daysString()
     }
     
+    // MARK: - Actions
     @objc
-    func plusButtonTapped() {
+    func plusButtonTapped(_ sender: UIButton) {
         
+        sender.isSelected.toggle()
+        plusButton.backgroundColor = plusButton.isSelected ? plusButton.backgroundColor?.withAlphaComponent(0.3) : plusButton.backgroundColor?.withAlphaComponent(1)
+        guard let id = trackerID else { return }
+        delegate?.updateCompletedTrackers(for: id)
+        updateDayCounterLabel()
     }
 }

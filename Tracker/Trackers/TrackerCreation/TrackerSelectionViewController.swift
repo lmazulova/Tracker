@@ -88,11 +88,10 @@ final class TrackerSelectionViewController: UIViewController {
             if let identifier = ControllersIdentifier(rawValue: buttonTitle) {
                 let creationViewController = TrackerCreationViewController(identifier: identifier)
                 if let tabBarController = self.view.window?.rootViewController as? TabBarController {
-                    guard let trackerNavigationController = tabBarController.viewControllers?.first as? UINavigationController,
-                          let trackerViewController = trackerNavigationController.viewControllers.first as? TrackersViewController else { return }
+                    guard let trackerViewController = tabBarController.viewControllers?.first as? TrackersViewController else { return }
                     creationViewController.delegate = trackerViewController
+                    present(creationViewController, animated: true)
                 }
-                present(creationViewController, animated: true)
             }
         }
     }

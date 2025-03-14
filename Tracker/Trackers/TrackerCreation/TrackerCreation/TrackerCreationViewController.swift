@@ -8,12 +8,16 @@ enum ControllersIdentifier: String {
 
 final class TrackerCreationViewController: UIViewController {
     
+    //т.к. тому кто реализует TrackerPresenterProtocol не нужно знать ничего о классе который управляет созданием ячейки, делегат можно сделать одностронним, и тогда приставка weak не нужна, т.к. нет условий для retain cycle
+    var delegate: TrackerPresenterProtocol?
+
     private var scheduleSelected: Bool = false
     private var titleFilled: Bool = false
     
     var identifier: ControllersIdentifier
     var schedule: Schedule?
     var trackerTitle: String?
+    var categoryTitle: String?
     
     init(identifier: ControllersIdentifier) {
         self.identifier = identifier
@@ -24,58 +28,80 @@ final class TrackerCreationViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    //т.к. тому кто реализует TrackerPresenterProtocol не нужно знать ничего о классе который управляет созданием ячейки, делегат можно сделать одностронним, и тогда приставка weak не нужна, т.к. нет условий для retain cycle
-    var delegate: TrackerPresenterProtocol?
     
     // MARK: - Private Properties
     private let characterLimit = 38
     // UI Elements
-    private lazy var textField: UITextField = {
-        let textField = UITextField()
-        textField.placeholder = "Введите название трекера"
-        textField.font = UIFont.systemFont(ofSize: 17, weight: .regular)
-        textField.textColor = UIColor.customBlack
-        textField.translatesAutoresizingMaskIntoConstraints = false
-        textField.rightViewMode = .whileEditing
-        textField.autocorrectionType = .no
-        textField.spellCheckingType = .no
-        textField.smartQuotesType = .no
-        textField.smartDashesType = .no
-        textField.smartInsertDeleteType = .no
-        
-        let deleteButton = UIButton(type: .custom)
-        deleteButton.setImage(UIImage(named: "deleteButton"), for: .normal)
-        deleteButton.translatesAutoresizingMaskIntoConstraints = false
-        
-        let buttonView = UIView()
-        buttonView.translatesAutoresizingMaskIntoConstraints = false
-        buttonView.addSubview(deleteButton)
-        
-        NSLayoutConstraint.activate([
-            deleteButton.trailingAnchor.constraint(equalTo: buttonView.trailingAnchor),
-            deleteButton.widthAnchor.constraint(equalToConstant: 17),
-            deleteButton.heightAnchor.constraint(equalToConstant: 17),
-            buttonView.widthAnchor.constraint(equalToConstant: 29)
-        ])
-        
-        deleteButton.addTarget(self, action: #selector(clearTextField), for: .touchUpInside)
-        textField.rightView = buttonView
-        
-        return textField
+    private lazy var deleteButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(named: "deleteButton"), for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.isHidden = true
+        button.addTarget(self, action: #selector(clearTextView), for: .touchUpInside)
+        return button
     }()
     
+    private let placeHolderLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+        label.text = "Введите название трекера"
+        label.textColor = UIColor.customGray
+        label.translatesAutoresizingMaskIntoConstraints = false
+        
+        return label
+    }()
+    
+    private lazy var textView: UITextView = {
+        let textView = UITextView()
+        textView.backgroundColor = .clear
+        textView.isScrollEnabled = false
+        textView.isEditable = true
+        textView.isSelectable = true
+        textView.autocorrectionType = .no
+        textView.spellCheckingType = .no
+        textView.smartQuotesType = .no
+        textView.smartDashesType = .no
+        textView.smartInsertDeleteType = .no
+        
+        textView.translatesAutoresizingMaskIntoConstraints = false
+        textView.textContainer.maximumNumberOfLines = 2
+        textView.textContainer.heightTracksTextView = true
+        textView.textContainer.lineBreakMode = .byTruncatingHead
+        
+        let paragrafStyle = NSMutableParagraphStyle()
+        paragrafStyle.lineSpacing = 0
+        
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 17, weight: .regular),
+            .paragraphStyle: paragrafStyle
+        ]
+        textView.typingAttributes = attributes
+        
+        return textView
+    }()
+
     private lazy var textFieldView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 16
         view.backgroundColor = .customBackground
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(textField)
-        NSLayoutConstraint.activate([
-            textField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            textField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            textField.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-        ])
+        view.addSubview(textView)
+        view.addSubview(deleteButton)
+        textView.addSubview(placeHolderLabel)
         
+        NSLayoutConstraint.activate([
+            textView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            textView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -41),
+            textView.topAnchor.constraint(equalTo: view.topAnchor, constant: 21),
+            deleteButton.heightAnchor.constraint(equalToConstant: 17),
+            deleteButton.widthAnchor.constraint(equalToConstant: 17),
+            deleteButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12),
+            deleteButton.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            placeHolderLabel.trailingAnchor.constraint(equalTo: textView.trailingAnchor),
+            placeHolderLabel.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 4),
+            placeHolderLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+
         return view
     }()
     
@@ -120,7 +146,11 @@ final class TrackerCreationViewController: UIViewController {
     }()
     
     private func checkingButtonActivation() {
-        if titleFilled && scheduleSelected {
+        if identifier == ControllersIdentifier.irregularEvent && titleFilled {
+            createButton.backgroundColor = UIColor.customBlack
+            createButton.isEnabled = true
+        }
+        else if titleFilled && scheduleSelected {
             createButton.backgroundColor = UIColor.customBlack
             createButton.isEnabled = true
         }
@@ -160,6 +190,8 @@ final class TrackerCreationViewController: UIViewController {
         view.backgroundColor = .customWhite
         tableView.delegate = self
         tableView.dataSource = self
+        textView.delegate = self
+        categoryTitle = "Важное"
         setupNavigationBar()
         setupConstraints()
         setupActions()
@@ -213,7 +245,6 @@ final class TrackerCreationViewController: UIViewController {
     private func setupActions() {
         cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
         createButton.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
-        textField.addTarget(self, action: #selector(characterLimitReached), for: .editingChanged)
     }
     
     private func setupNavigationBar() {
@@ -240,34 +271,17 @@ final class TrackerCreationViewController: UIViewController {
     
     @objc
     func createButtonTapped() {
-        let tracker = Tracker(id: UUID(), title: trackerTitle!, color: UIColor.colorSelection1, emoji: "✨", schedule: schedule!)
-        delegate?.addTracker(for: TrackerCategory(categoryTitle: "Важное", trackersInCategory: [tracker]))
+        let tracker = Tracker(id: UUID(), title: trackerTitle!, color: UIColor.colorSelection1, emoji: "✨", schedule: schedule)
+        delegate?.addTracker(for: TrackerCategory(categoryTitle: categoryTitle!, trackersInCategory: [tracker]))
         delegate?.cancelingTrackerCreation()
     }
-    
+     
     @objc
-    func characterLimitReached() {
-        guard let text = textField.text else {
-            warningLabel.isHidden = true
-            titleFilled = false
-            checkingButtonActivation()
-            return
-        }
-        if text.count > characterLimit {
-            warningLabel.isHidden = false
-            titleFilled = false
-            checkingButtonActivation()
-        }
-        else {
-            warningLabel.isHidden = true
-            setTitle(title: text)
-        }
-    }
-    
-    @objc
-    func clearTextField() {
-        textField.text = ""
+    func clearTextView() {
+        textView.text = ""
         warningLabel.isHidden = true
+        deleteButton.isHidden = true
+        placeHolderLabel.isHidden = false
         titleFilled = false
         checkingButtonActivation()
     }
@@ -285,6 +299,7 @@ extension TrackerCreationViewController: UITableViewDelegate {
             scheduleViewController.addSchedule = { [weak self] selectedWeekDays in
                 guard let self = self else { return }
                 setSchedule(for: selectedWeekDays)
+                self.tableView.reloadData()
             }
             present(scheduleViewController, animated: false)
         default:
@@ -302,18 +317,21 @@ extension TrackerCreationViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: ItemsCell.identifier) else {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: ItemsCell.identifier) as? ItemsCell else {
             return UITableViewCell()
         }
         if indexPath.row == 0 {
-            cell.textLabel?.text = "Категория"
+            cell.setupCellTitle(title: "Категория")
+            cell.setupSelectedCategory(title: categoryTitle)
             if identifier == ControllersIdentifier.irregularEvent {
                 cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: tableView.bounds.width)
             }
+            
             return cell
         }
         cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: tableView.bounds.width)
-        cell.textLabel?.text = "Расписание"
+        cell.setupCellTitle(title: "Расписание")
+        cell.setupSelectedSchedule(schedule: schedule)
         return cell
     }
 }
@@ -325,15 +343,126 @@ final class ItemsCell: UITableViewCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         self.backgroundColor = .clear
-        self.textLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
-        self.textLabel?.textColor = .customBlack
         self.accessoryType = .disclosureIndicator
         self.accessoryView = UIImageView(image: UIImage(named: "chevronRight"))
         self.selectionStyle = .none
+        setupConstraints()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    private lazy var stackView: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [titleLabel, selectedItemsLabel])
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .vertical
+        stack.spacing = 2
+        
+        NSLayoutConstraint.activate([
+            
+        ])
+        return stack
+    }()
+    
+    private let titleLabel: UILabel = {
+        let titleLabel = UILabel()
+        titleLabel.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+        titleLabel.textColor = .customBlack
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        return titleLabel
+    }()
+    
+    private let selectedItemsLabel: UILabel = {
+        let selectedItemsLabel = UILabel()
+        selectedItemsLabel.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+        selectedItemsLabel.textColor = .customGray
+        selectedItemsLabel.translatesAutoresizingMaskIntoConstraints = false
+        selectedItemsLabel.isHidden = true
+        
+        return selectedItemsLabel
+    }()
+    
+    private func setupConstraints() {
+        self.addSubview(stackView)
+        selectedItemsLabel.isHidden = true
+        
+        NSLayoutConstraint.activate([
+            stackView.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            stackView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 16),
+            stackView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -56),
+            titleLabel.leadingAnchor.constraint(equalTo: stackView.leadingAnchor),
+            titleLabel.trailingAnchor.constraint(equalTo: stackView.trailingAnchor),
+            selectedItemsLabel.leadingAnchor.constraint(equalTo: stackView.leadingAnchor),
+            selectedItemsLabel.trailingAnchor.constraint(equalTo: stackView.trailingAnchor)
+        ])
+    }
+    
+    func setupCellTitle(title: String) {
+        titleLabel.text = title
+    }
+    
+    func setupSelectedSchedule(schedule: Schedule?) {
+        guard let schedule = schedule else { return }
+        selectedItemsLabel.isHidden = false
+        if schedule.days.count == 7 {
+            selectedItemsLabel.text = "Каждый день"
+        }
+        else {
+            let days = schedule.days
+            .sorted {WeekDay.allCases.firstIndex(of: $0)! < WeekDay.allCases.firstIndex(of: $1)! }
+            var labelText = ""
+            for day in days {
+                switch day {
+                case .monday:
+                    labelText += "Пн, "
+                case .tuesday:
+                    labelText += "Вт, "
+                case .wednesday:
+                    labelText += "Ср, "
+                case .thursday:
+                    labelText += "Чт, "
+                case .friday:
+                    labelText += "Пт, "
+                case .saturday:
+                    labelText += "Сб, "
+                case .sunday:
+                    labelText += "Вс, "
+                }
+            }
+            labelText.removeLast(2)
+            selectedItemsLabel.text = labelText
+        }
+    }
+    
+    func setupSelectedCategory(title: String?) {
+        guard let title = title else { return }
+        selectedItemsLabel.text = title
+        selectedItemsLabel.isHidden = false
+    }
 }
 
+extension TrackerCreationViewController: UITextViewDelegate {
+    func textViewDidChange(_ textView: UITextView) {
+        deleteButton.isHidden = textView.text.isEmpty
+        placeHolderLabel.isHidden = !textView.text.isEmpty
+        if textView.text.isEmpty {
+            warningLabel.isHidden = true
+            titleFilled = false
+            checkingButtonActivation()
+            return
+        }
+        
+        if textView.text.count > characterLimit {
+            warningLabel.isHidden = false
+            titleFilled = false
+            checkingButtonActivation()
+        }
+        
+        else {
+            warningLabel.isHidden = true
+            setTitle(title: textView.text)
+        }
+    }
+}
