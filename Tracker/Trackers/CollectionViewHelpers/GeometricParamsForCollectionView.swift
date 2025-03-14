@@ -1,6 +1,6 @@
 import Foundation
 
-struct GeometricParams {
+struct GeometricParamsForCollectionView {
     let cellCount: Int
     let leftInset: CGFloat
     let rightInset: CGFloat

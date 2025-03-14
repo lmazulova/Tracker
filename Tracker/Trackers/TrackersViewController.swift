@@ -1,13 +1,25 @@
 import UIKit
 
 final class TrackersViewController: UIViewController {
+    
+    // MARK: - Lifecycle
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = UIColor.customWhite
+        setupUI()
+    }
+    
+    // MARK: - Public Properties
+    
     var categories: [TrackerCategory] = []
     var categoriesArrayForUsage: [TrackerCategory] = []
     var completedTrackers: Set<TrackerRecord> = []
     var currentDate: Date = Calendar.current.startOfDay(for: Date())
     
     // MARK: - Private Properties
-    private let params = GeometricParams(
+    
+    private let params = GeometricParamsForCollectionView(
         cellCount: 2,
         leftInset: 16,
         rightInset: 16,
@@ -56,7 +68,7 @@ final class TrackersViewController: UIViewController {
         }
         searchBar.setBackgroundImage(UIImage(), for: .any, barMetrics: .default)
         searchBar.translatesAutoresizingMaskIntoConstraints = false
-
+        
         return searchBar
     }()
     
@@ -146,14 +158,8 @@ final class TrackersViewController: UIViewController {
         return datePicker
     }()
     
-    // MARK: - Lifecycle
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = UIColor.customWhite
-        setupUI()
-    }
-    
     // MARK: - UI Configuration
+    
     private func setupUI() {
         setupHeader()
         view.addSubview(stubStackView)
@@ -175,7 +181,7 @@ final class TrackersViewController: UIViewController {
     
     private func updateUI() {
         let state = categoriesArrayForUsage.isEmpty
-    
+        
         if searchBar.showsCancelButton == true {
             searchStubStackView.isHidden = !state
             stubStackView.isHidden = true
@@ -215,10 +221,42 @@ final class TrackersViewController: UIViewController {
         ])
     }
     
+    // MARK: - Actions
+    
+    @objc private func plusButtonTapped() {
+        let trackerSelectionController = TrackerSelectionViewController()
+        present(trackerSelectionController, animated: true)
+    }
+    @objc private func dateChanged(_ datePicker: UIDatePicker) {
+        currentDate = Calendar.current.startOfDay(for: datePicker.date)
+        filterByDates(by: currentDate)
+        selectedDateButton.setTitle(formattedDate(currentDate), for: .normal)
+        datePickerContainer.isHidden.toggle()
+        updateUI()
+    }
+    
+    @objc private func setupDatePicker() {
+        if view.subviews.contains(datePickerContainer) {
+            datePickerContainer.isHidden.toggle()
+        }
+        else {
+            view.addSubview(datePickerContainer)
+            view.bringSubviewToFront(datePickerContainer)
+            NSLayoutConstraint.activate([
+                datePickerContainer.topAnchor.constraint(equalTo: searchBar.topAnchor),
+                datePickerContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+                datePickerContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+                datePickerContainer.heightAnchor.constraint(equalTo: datePickerContainer.widthAnchor, multiplier: 0.95)
+            ])
+            datePicker.isHidden = false
+        }
+    }
+    
     // MARK: - Private Methods
+    
     private func countRecordsByID(records: Set<TrackerRecord>, by id: UUID) -> Int {
         var counts: [UUID: Int] = [:]
-    
+        
         for record in records {
             counts[record.id, default: 0] += 1
         }
@@ -247,36 +285,6 @@ final class TrackersViewController: UIViewController {
         formatter.dateFormat = "dd.MM.yy"
         return formatter.string(from: date)
     }
-    
-    // MARK: - Actions
-    @objc func plusButtonTapped() {
-        let trackerSelectionController = TrackerSelectionViewController()
-        present(trackerSelectionController, animated: true)
-    }
-    @objc func dateChanged(_ datePicker: UIDatePicker) {
-        currentDate = datePicker.date
-        filterByDates(by: currentDate)
-        selectedDateButton.setTitle(formattedDate(currentDate), for: .normal)
-        datePickerContainer.isHidden.toggle()
-        updateUI()
-    }
-    
-    @objc func setupDatePicker() {
-        if view.subviews.contains(datePickerContainer) {
-            datePickerContainer.isHidden.toggle()
-        }
-        else {
-            view.addSubview(datePickerContainer)
-            view.bringSubviewToFront(datePickerContainer)
-            NSLayoutConstraint.activate([
-                datePickerContainer.topAnchor.constraint(equalTo: searchBar.topAnchor),
-                datePickerContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-                datePickerContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-                datePickerContainer.heightAnchor.constraint(equalTo: datePickerContainer.widthAnchor, multiplier: 0.95)
-            ])
-            datePicker.isHidden = false
-        }
-    }
 }
 
 // MARK: - UICollectionViewDelegate
@@ -300,13 +308,12 @@ extension TrackersViewController: UICollectionViewDataSource {
         }
         let tracker = categoriesArrayForUsage[indexPath.section].trackersInCategory[indexPath.row]
         let trackerIsCompleted: Bool
-        if Calendar.current.startOfDay(for: Date()) == currentDate {
-            trackerIsCompleted = completedTrackers.contains(TrackerRecord(id: tracker.id, date: Calendar.current.startOfDay(for: currentDate)))
+        if currentDate <= Calendar.current.startOfDay(for: Date()) {
+            trackerIsCompleted = completedTrackers.contains(TrackerRecord(id: tracker.id, date: currentDate))
         }
         else {
             trackerIsCompleted = false
         }
-        let amountOfSelectedDays = completedTrackers.contains(TrackerRecord(id: tracker.id, date: Calendar.current.startOfDay(for: currentDate)))
         cell.configureCell(for: tracker, with: trackerIsCompleted, counterValue: countRecordsByID(records: completedTrackers, by: tracker.id), currentDate: currentDate)
         cell.delegate = self
         
@@ -349,7 +356,7 @@ extension TrackersViewController: TrackerPresenterProtocol {
     func cancelingTrackerCreation() {
         self.dismiss(animated: true)
     }
-
+    
     func addTracker(for category: TrackerCategory) {
         var newCategories = categories
         if let index = newCategories.firstIndex(where: {$0.categoryTitle == category.categoryTitle}) {
@@ -358,8 +365,7 @@ extension TrackersViewController: TrackerPresenterProtocol {
                 trackersInCategory: newCategories[index].trackersInCategory + category.trackersInCategory
             )
             newCategories[index] = updatedCategory
-        }
-        else {
+        } else {
             newCategories.append(category)
         }
         categories = newCategories
@@ -387,11 +393,10 @@ extension TrackersViewController: TrackerPresenterProtocol {
 // MARK: - TrackerCellDelegate
 extension TrackersViewController: TrackerCellDelegate {
     func updateCompletedTrackers(for id: UUID) {
-        let trackerRecord = TrackerRecord(id: id, date: Date())
+        let trackerRecord = TrackerRecord(id: id, date: currentDate)
         if completedTrackers.contains(trackerRecord) {
             completedTrackers.remove(trackerRecord)
-        }
-        else {
+        } else {
             completedTrackers.insert(trackerRecord)
         }
     }
@@ -416,9 +421,9 @@ extension TrackersViewController: UISearchBarDelegate {
         updateUI()
     }
     private func animateCancelButton(visible: Bool) {
-            UIView.animate(withDuration: 0.1, delay: 0, options: .curveEaseInOut, animations: {
-                self.searchBar.showsCancelButton = visible
-                self.searchBar.layoutIfNeeded() // Обновляем интерфейс с анимацией]
-            })
+        UIView.animate(withDuration: 0.1, delay: 0, options: .curveEaseInOut, animations: {
+            self.searchBar.showsCancelButton = visible
+            self.searchBar.layoutIfNeeded()
+        })
     }
 }

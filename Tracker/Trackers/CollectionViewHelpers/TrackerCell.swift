@@ -54,7 +54,7 @@ final class TrackerCell: UICollectionViewCell {
         return view
     }()
     
-    private let QuantityManagementView: UIView = {
+    private let quantityManagementView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         
@@ -69,7 +69,7 @@ final class TrackerCell: UICollectionViewCell {
         
         return label
     }()
-
+    
     private let plusButton: UIButton = {
         let button = UIButton(type: .custom)
         button.layer.cornerRadius = 17
@@ -114,13 +114,13 @@ final class TrackerCell: UICollectionViewCell {
     
     private func setupCellConstraints() {
         contentView.addSubview(card)
-        contentView.addSubview(QuantityManagementView)
-        QuantityManagementView.addSubview(dayCounterLabel)
-        QuantityManagementView.addSubview(plusButton)
+        contentView.addSubview(quantityManagementView)
+        quantityManagementView.addSubview(dayCounterLabel)
+        quantityManagementView.addSubview(plusButton)
         card.addSubview(cardText)
         card.addSubview(emojiView)
         card.addSubview(emojiLabel)
-
+        
         NSLayoutConstraint.activate([
             card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
@@ -136,19 +136,19 @@ final class TrackerCell: UICollectionViewCell {
             emojiLabel.centerXAnchor.constraint(equalTo: emojiView.centerXAnchor),
             emojiLabel.centerYAnchor.constraint(equalTo: emojiView.centerYAnchor),
             emojiLabel.heightAnchor.constraint(equalToConstant: 22),
-            QuantityManagementView.topAnchor.constraint(equalTo: card.bottomAnchor),
-            QuantityManagementView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            QuantityManagementView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            QuantityManagementView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            dayCounterLabel.leadingAnchor.constraint(equalTo: QuantityManagementView.leadingAnchor, constant: 12),
+            quantityManagementView.topAnchor.constraint(equalTo: card.bottomAnchor),
+            quantityManagementView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            quantityManagementView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            quantityManagementView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            dayCounterLabel.leadingAnchor.constraint(equalTo: quantityManagementView.leadingAnchor, constant: 12),
             dayCounterLabel.centerYAnchor.constraint(equalTo: plusButton.centerYAnchor),
-            plusButton.trailingAnchor.constraint(equalTo: QuantityManagementView.trailingAnchor, constant: -12),
-            plusButton.topAnchor.constraint(equalTo: QuantityManagementView.topAnchor, constant: 8),
+            plusButton.trailingAnchor.constraint(equalTo: quantityManagementView.trailingAnchor, constant: -12),
+            plusButton.topAnchor.constraint(equalTo: quantityManagementView.topAnchor, constant: 8),
             plusButton.heightAnchor.constraint(equalTo: plusButton.widthAnchor),
             plusButton.widthAnchor.constraint(equalToConstant: 34)
         ])
     }
-
+    
     func configureCell(for tracker: Tracker, with plusButtonState: Bool, counterValue: Int, currentDate: Date) {
         trackerID = tracker.id
         daysAmount = counterValue
@@ -156,15 +156,13 @@ final class TrackerCell: UICollectionViewCell {
         cardText.text = tracker.title
         card.backgroundColor = tracker.color
         plusButton.isSelected = plusButtonState
-        plusButton.isEnabled = (currentDate == Calendar.current.startOfDay(for: Date()))
+        plusButton.isEnabled = (currentDate <= Calendar.current.startOfDay(for: Date()))
         plusButton.backgroundColor = plusButtonState ? tracker.color.withAlphaComponent(0.3) : tracker.color
         dayCounterLabel.text = daysString()
     }
     
     // MARK: - Actions
-    @objc
-    func plusButtonTapped(_ sender: UIButton) {
-        
+    @objc private func plusButtonTapped(_ sender: UIButton) {
         sender.isSelected.toggle()
         plusButton.backgroundColor = plusButton.isSelected ? plusButton.backgroundColor?.withAlphaComponent(0.3) : plusButton.backgroundColor?.withAlphaComponent(1)
         guard let id = trackerID else { return }

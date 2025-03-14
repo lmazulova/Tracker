@@ -10,7 +10,7 @@ final class TrackerCreationViewController: UIViewController {
     
     //т.к. тому кто реализует TrackerPresenterProtocol не нужно знать ничего о классе который управляет созданием ячейки, делегат можно сделать одностронним, и тогда приставка weak не нужна, т.к. нет условий для retain cycle
     var delegate: TrackerPresenterProtocol?
-
+    
     private var scheduleSelected: Bool = false
     private var titleFilled: Bool = false
     
@@ -79,7 +79,7 @@ final class TrackerCreationViewController: UIViewController {
         
         return textView
     }()
-
+    
     private lazy var textFieldView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 16
@@ -93,6 +93,7 @@ final class TrackerCreationViewController: UIViewController {
             textView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             textView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -41),
             textView.topAnchor.constraint(equalTo: view.topAnchor, constant: 21),
+            textView.heightAnchor.constraint(lessThanOrEqualToConstant: 2 * (UIFont.systemFont(ofSize: 17).lineHeight + 8)),
             deleteButton.heightAnchor.constraint(equalToConstant: 17),
             deleteButton.widthAnchor.constraint(equalToConstant: 17),
             deleteButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12),
@@ -101,7 +102,7 @@ final class TrackerCreationViewController: UIViewController {
             placeHolderLabel.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 4),
             placeHolderLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
-
+        
         return view
     }()
     
@@ -128,7 +129,7 @@ final class TrackerCreationViewController: UIViewController {
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.tintColor = .clear
-
+        
         return button
     }()
     
@@ -195,6 +196,11 @@ final class TrackerCreationViewController: UIViewController {
         setupNavigationBar()
         setupConstraints()
         setupActions()
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        self.textFieldView.endEditing(true)
     }
     
     // MARK: - UI Configuration
@@ -264,20 +270,17 @@ final class TrackerCreationViewController: UIViewController {
     }
     
     // MARK: - Actions
-    @objc
-    func cancelButtonTapped() {
+    @objc private func cancelButtonTapped() {
         delegate?.cancelingTrackerCreation()
     }
     
-    @objc
-    func createButtonTapped() {
+    @objc private func createButtonTapped() {
         let tracker = Tracker(id: UUID(), title: trackerTitle!, color: UIColor.colorSelection1, emoji: "✨", schedule: schedule)
         delegate?.addTracker(for: TrackerCategory(categoryTitle: categoryTitle!, trackersInCategory: [tracker]))
         delegate?.cancelingTrackerCreation()
     }
-     
-    @objc
-    func clearTextView() {
+    
+    @objc private func clearTextView() {
         textView.text = ""
         warningLabel.isHidden = true
         deleteButton.isHidden = true
@@ -411,7 +414,7 @@ final class ItemsCell: UITableViewCell {
         }
         else {
             let days = schedule.days
-            .sorted {WeekDay.allCases.firstIndex(of: $0)! < WeekDay.allCases.firstIndex(of: $1)! }
+                .sorted {WeekDay.allCases.firstIndex(of: $0)! < WeekDay.allCases.firstIndex(of: $1)! }
             var labelText = ""
             for day in days {
                 switch day {
@@ -464,5 +467,15 @@ extension TrackerCreationViewController: UITextViewDelegate {
             warningLabel.isHidden = true
             setTitle(title: textView.text)
         }
+    }
+    
+    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        if text == "\n" {
+            let maxHeight = 2 * (UIFont.systemFont(ofSize: 17).lineHeight + 8)
+            if textView.contentSize.height >= maxHeight {
+                return false
+            }
+        }
+        return true
     }
 }

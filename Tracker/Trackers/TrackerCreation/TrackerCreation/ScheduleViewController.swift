@@ -65,7 +65,7 @@ final class ScheduleViewController: UIViewController {
             tableView.bottomAnchor.constraint(equalTo: doneButton.topAnchor, constant: -39),
         ])
     }
-
+    
     private func setupNavigationBar() {
         navigationBar.translatesAutoresizingMaskIntoConstraints = false
         let title = UINavigationItem(title: "Расписание")
@@ -78,8 +78,7 @@ final class ScheduleViewController: UIViewController {
         navigationBar.isTranslucent = false
         navigationBar.shadowImage = UIImage()
     }
-    @objc
-    func doneButtonTapped() {
+    @objc private func doneButtonTapped() {
         addSchedule?(selectedWeekDays)
         self.dismiss(animated: true)
     }
@@ -155,8 +154,7 @@ final class DayOfWeekCell: UITableViewCell {
         switcher.addTarget(self, action: #selector(switchChanged), for: .valueChanged)
     }
     
-    @objc 
-    func switchChanged() {
+    @objc private func switchChanged() {
         guard let day = day else { return }
         delegate?.didToggleSwitch(for: day, isOn: switcher.isOn)
     }

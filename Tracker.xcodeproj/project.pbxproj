@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		CEDADE7F2D78C06F005E7BD3 /* GeometricParams.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDADE7E2D78C06F005E7BD3 /* GeometricParams.swift */; };
+		CEDADE7F2D78C06F005E7BD3 /* GeometricParamsForCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDADE7E2D78C06F005E7BD3 /* GeometricParamsForCollectionView.swift */; };
 		CEEC37A32D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEC37A22D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift */; };
 		CEEED9122D75D955008FAB02 /* TrackerCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEED9112D75D955008FAB02 /* TrackerCell.swift */; };
 		CEEED9142D75E13A008FAB02 /* TrackerSelectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEED9132D75E13A008FAB02 /* TrackerSelectionViewController.swift */; };
@@ -28,7 +28,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		CEDADE7E2D78C06F005E7BD3 /* GeometricParams.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeometricParams.swift; sourceTree = "<group>"; };
+		CEDADE7E2D78C06F005E7BD3 /* GeometricParamsForCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeometricParamsForCollectionView.swift; sourceTree = "<group>"; };
 		CEEC37A22D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerPresenterProtocol.swift; sourceTree = "<group>"; };
 		CEEED9112D75D955008FAB02 /* TrackerCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerCell.swift; sourceTree = "<group>"; };
 		CEEED9132D75E13A008FAB02 /* TrackerSelectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerSelectionViewController.swift; sourceTree = "<group>"; };
@@ -85,7 +85,7 @@
 			children = (
 				CEF853B02D7F407B00C7732D /* TrackerCellDelegateProtocol.swift */,
 				CEF853B22D7F491600C7732D /* HeaderForSection.swift */,
-				CEDADE7E2D78C06F005E7BD3 /* GeometricParams.swift */,
+				CEDADE7E2D78C06F005E7BD3 /* GeometricParamsForCollectionView.swift */,
 				CEEED9112D75D955008FAB02 /* TrackerCell.swift */,
 			);
 			path = CollectionViewHelpers;
@@ -242,7 +242,7 @@
 				CEFB2DFA2D689649002CF95C /* AppDelegate.swift in Sources */,
 				CEF853B32D7F492300C7732D /* HeaderForSection.swift in Sources */,
 				CEEC37A32D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift in Sources */,
-				CEDADE7F2D78C06F005E7BD3 /* GeometricParams.swift in Sources */,
+				CEDADE7F2D78C06F005E7BD3 /* GeometricParamsForCollectionView.swift in Sources */,
 				CEFB2DFC2D689649002CF95C /* SceneDelegate.swift in Sources */,
 				CEFB2E7F2D70AD8F002CF95C /* Tracker&Schedule.swift in Sources */,
 			);

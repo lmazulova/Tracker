@@ -83,7 +83,7 @@ final class TrackerSelectionViewController: UIViewController {
     }
     
     // MARK: - Actions
-    @objc func TrackerCreationButtonTapped(_ button: UIButton) {
+    @objc private func TrackerCreationButtonTapped(_ button: UIButton) {
         if let buttonTitle = button.titleLabel?.text {
             if let identifier = ControllersIdentifier(rawValue: buttonTitle) {
                 let creationViewController = TrackerCreationViewController(identifier: identifier)

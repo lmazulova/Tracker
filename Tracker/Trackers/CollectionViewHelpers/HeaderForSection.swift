@@ -1,7 +1,7 @@
 import UIKit
 
 final class HeaderForSection: UICollectionReusableView {
-    let titleLabel = UILabel()
+    lazy var titleLabel = UILabel()
     override init(frame: CGRect) {
         super.init(frame: frame)
         addSubview(titleLabel)

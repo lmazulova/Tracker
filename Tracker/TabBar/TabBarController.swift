@@ -20,7 +20,6 @@ final class TabBarController: UITabBarController {
         tabBar.layer.masksToBounds = false
         
         let trackerViewController = TrackersViewController()
-//        let TrackerNavigationController = UINavigationController(rootViewController: trackerViewController)
         let statisticsViewController = StatisticsViewController()
         trackerViewController.tabBarItem = UITabBarItem(
             title: "Трекеры",
