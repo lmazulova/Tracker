@@ -287,11 +287,6 @@ final class TrackersViewController: UIViewController {
     }
 }
 
-// MARK: - UICollectionViewDelegate
-extension TrackersViewController: UICollectionViewDelegate {
-    
-}
-
 // MARK: - UICollectionViewDataSource
 extension TrackersViewController: UICollectionViewDataSource {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
