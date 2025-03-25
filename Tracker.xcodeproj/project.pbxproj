@@ -11,6 +11,8 @@
 		CE319ACE2D89DF91008E441C /* EmojiCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE319ACD2D89DF91008E441C /* EmojiCell.swift */; };
 		CE319AD02D89DFBF008E441C /* ColorCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE319ACF2D89DFBE008E441C /* ColorCell.swift */; };
 		CE319AD22D89E07D008E441C /* ItemsCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE319AD12D89E07D008E441C /* ItemsCell.swift */; };
+		CE319AF92D8B3E14008E441C /* TrackerModels.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = CE319AF72D8B3E14008E441C /* TrackerModels.xcdatamodeld */; };
+		CEB83C272D92C1B100F834F9 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB83C262D92C1B100F834F9 /* Store.swift */; };
 		CEDADE7F2D78C06F005E7BD3 /* GeometricParamsForCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDADE7E2D78C06F005E7BD3 /* GeometricParamsForCollectionView.swift */; };
 		CEEC37A32D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEC37A22D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift */; };
 		CEEED9122D75D955008FAB02 /* TrackerCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEED9112D75D955008FAB02 /* TrackerCell.swift */; };
@@ -36,6 +38,8 @@
 		CE319ACD2D89DF91008E441C /* EmojiCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiCell.swift; sourceTree = "<group>"; };
 		CE319ACF2D89DFBE008E441C /* ColorCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorCell.swift; sourceTree = "<group>"; };
 		CE319AD12D89E07D008E441C /* ItemsCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemsCell.swift; sourceTree = "<group>"; };
+		CE319AF82D8B3E14008E441C /* TrackerModels.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = TrackerModels.xcdatamodel; sourceTree = "<group>"; };
+		CEB83C262D92C1B100F834F9 /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
 		CEDADE7E2D78C06F005E7BD3 /* GeometricParamsForCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeometricParamsForCollectionView.swift; sourceTree = "<group>"; };
 		CEEC37A22D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerPresenterProtocol.swift; sourceTree = "<group>"; };
 		CEEED9112D75D955008FAB02 /* TrackerCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerCell.swift; sourceTree = "<group>"; };
@@ -130,6 +134,7 @@
 		CEFB2DF82D689649002CF95C /* Tracker */ = {
 			isa = PBXGroup;
 			children = (
+				CE319AF72D8B3E14008E441C /* TrackerModels.xcdatamodeld */,
 				CEFB2DF92D689649002CF95C /* AppDelegate.swift */,
 				CEFB2DFB2D689649002CF95C /* SceneDelegate.swift */,
 				CEFB2E7D2D70AD56002CF95C /* TrackerStructures */,
@@ -175,6 +180,7 @@
 				CEFB2E7E2D70AD8F002CF95C /* Tracker&Schedule.swift */,
 				CEFB2E802D70ADA1002CF95C /* TrackerCategory.swift */,
 				CEFB2E822D70ADAF002CF95C /* TrackerRecord.swift */,
+				CEB83C262D92C1B100F834F9 /* Store.swift */,
 			);
 			path = TrackerStructures;
 			sourceTree = "<group>";
@@ -266,7 +272,9 @@
 				CEFB2DFA2D689649002CF95C /* AppDelegate.swift in Sources */,
 				CEF853B32D7F492300C7732D /* HeaderForSection.swift in Sources */,
 				CEEC37A32D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift in Sources */,
+				CEB83C272D92C1B100F834F9 /* Store.swift in Sources */,
 				CEDADE7F2D78C06F005E7BD3 /* GeometricParamsForCollectionView.swift in Sources */,
+				CE319AF92D8B3E14008E441C /* TrackerModels.xcdatamodeld in Sources */,
 				CEFB2DFC2D689649002CF95C /* SceneDelegate.swift in Sources */,
 				CEFB2E7F2D70AD8F002CF95C /* Tracker&Schedule.swift in Sources */,
 			);
@@ -491,6 +499,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		CE319AF72D8B3E14008E441C /* TrackerModels.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				CE319AF82D8B3E14008E441C /* TrackerModels.xcdatamodel */,
+			);
+			currentVersion = CE319AF82D8B3E14008E441C /* TrackerModels.xcdatamodel */;
+			path = TrackerModels.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = CEFB2DEE2D689649002CF95C /* Project object */;
 }
