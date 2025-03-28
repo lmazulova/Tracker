@@ -17,7 +17,7 @@ final class TrackerCreationViewController: UIViewController {
     
     private var scheduleSelected: Bool = false
     private var titleFilled: Bool = false
-    private var schedule: Schedule?
+    private var schedule: Set<WeekDay>?
     private var trackerTitle: String?
     private var categoryTitle: String?
     private let characterLimit = 38
@@ -339,7 +339,7 @@ final class TrackerCreationViewController: UIViewController {
             scheduleSelected = false
             return
         }
-        schedule = Schedule(days: weekDays)
+        schedule = weekDays
         scheduleSelected = true
         checkingButtonActivation()
     }
@@ -361,9 +361,10 @@ final class TrackerCreationViewController: UIViewController {
             title: trackerTitle!,
             color: TrackerAttributes.colors[selectedColorPath?.row ?? 0],
             emoji: TrackerAttributes.emojis[selectedEmojiPath?.row ?? 0],
-            schedule: schedule
+            schedule: schedule, 
+            category: TrackerCategory(categoryTitle: categoryTitle ?? "")
         )
-        delegate?.addTracker(for: TrackerCategory(categoryTitle: categoryTitle ?? "", trackersInCategory: [tracker]))
+        delegate?.addTracker(tracker)
         delegate?.cancelingTrackerCreation()
     }
     

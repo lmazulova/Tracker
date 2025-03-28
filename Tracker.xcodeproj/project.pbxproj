@@ -12,6 +12,8 @@
 		CE319AD02D89DFBF008E441C /* ColorCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE319ACF2D89DFBE008E441C /* ColorCell.swift */; };
 		CE319AD22D89E07D008E441C /* ItemsCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE319AD12D89E07D008E441C /* ItemsCell.swift */; };
 		CE319AF92D8B3E14008E441C /* TrackerModels.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = CE319AF72D8B3E14008E441C /* TrackerModels.xcdatamodeld */; };
+		CE72AE612D957365007ADFD1 /* DataModificationProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE72AE602D957365007ADFD1 /* DataModificationProtocol.swift */; };
+		CE72AE632D95A89D007ADFD1 /* TrackerDataProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE72AE622D95A89D007ADFD1 /* TrackerDataProvider.swift */; };
 		CEB83C272D92C1B100F834F9 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB83C262D92C1B100F834F9 /* Store.swift */; };
 		CEDADE7F2D78C06F005E7BD3 /* GeometricParamsForCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDADE7E2D78C06F005E7BD3 /* GeometricParamsForCollectionView.swift */; };
 		CEEC37A32D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEC37A22D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift */; };
@@ -39,6 +41,8 @@
 		CE319ACF2D89DFBE008E441C /* ColorCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorCell.swift; sourceTree = "<group>"; };
 		CE319AD12D89E07D008E441C /* ItemsCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemsCell.swift; sourceTree = "<group>"; };
 		CE319AF82D8B3E14008E441C /* TrackerModels.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = TrackerModels.xcdatamodel; sourceTree = "<group>"; };
+		CE72AE602D957365007ADFD1 /* DataModificationProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataModificationProtocol.swift; sourceTree = "<group>"; };
+		CE72AE622D95A89D007ADFD1 /* TrackerDataProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerDataProvider.swift; sourceTree = "<group>"; };
 		CEB83C262D92C1B100F834F9 /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
 		CEDADE7E2D78C06F005E7BD3 /* GeometricParamsForCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeometricParamsForCollectionView.swift; sourceTree = "<group>"; };
 		CEEC37A22D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerPresenterProtocol.swift; sourceTree = "<group>"; };
@@ -115,6 +119,25 @@
 			path = CollectionViewHelpers;
 			sourceTree = "<group>";
 		};
+		CE72AE5E2D94645A007ADFD1 /* Core Data */ = {
+			isa = PBXGroup;
+			children = (
+				CEB83C262D92C1B100F834F9 /* Store.swift */,
+				CE72AE622D95A89D007ADFD1 /* TrackerDataProvider.swift */,
+				CE72AE602D957365007ADFD1 /* DataModificationProtocol.swift */,
+				CE72AE5F2D94728E007ADFD1 /* Model */,
+			);
+			path = "Core Data";
+			sourceTree = "<group>";
+		};
+		CE72AE5F2D94728E007ADFD1 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				CE319AF72D8B3E14008E441C /* TrackerModels.xcdatamodeld */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
 		CEFB2DED2D689649002CF95C = {
 			isa = PBXGroup;
 			children = (
@@ -134,12 +157,12 @@
 		CEFB2DF82D689649002CF95C /* Tracker */ = {
 			isa = PBXGroup;
 			children = (
-				CE319AF72D8B3E14008E441C /* TrackerModels.xcdatamodeld */,
 				CEFB2DF92D689649002CF95C /* AppDelegate.swift */,
 				CEFB2DFB2D689649002CF95C /* SceneDelegate.swift */,
 				CEFB2E7D2D70AD56002CF95C /* TrackerStructures */,
 				CEFB2E0F2D68C5BC002CF95C /* Statistics */,
 				CEFB2E0E2D68C581002CF95C /* Trackers */,
+				CE72AE5E2D94645A007ADFD1 /* Core Data */,
 				CEFB2E0D2D68C569002CF95C /* TabBar */,
 				CEFB2E022D68964B002CF95C /* Assets.xcassets */,
 				CEFB2E042D68964B002CF95C /* LaunchScreen.storyboard */,
@@ -180,7 +203,6 @@
 				CEFB2E7E2D70AD8F002CF95C /* Tracker&Schedule.swift */,
 				CEFB2E802D70ADA1002CF95C /* TrackerCategory.swift */,
 				CEFB2E822D70ADAF002CF95C /* TrackerRecord.swift */,
-				CEB83C262D92C1B100F834F9 /* Store.swift */,
 			);
 			path = TrackerStructures;
 			sourceTree = "<group>";
@@ -261,6 +283,7 @@
 				CEEED9142D75E13A008FAB02 /* TrackerSelectionViewController.swift in Sources */,
 				CEEED9122D75D955008FAB02 /* TrackerCell.swift in Sources */,
 				CEFB2E132D68C67D002CF95C /* StatisticsViewController.swift in Sources */,
+				CE72AE612D957365007ADFD1 /* DataModificationProtocol.swift in Sources */,
 				CEEED91A2D77307B008FAB02 /* ScheduleViewController.swift in Sources */,
 				CEEED9162D75F408008FAB02 /* TrackerCreationViewController.swift in Sources */,
 				CEF853B12D7F409000C7732D /* TrackerCellDelegateProtocol.swift in Sources */,
@@ -272,6 +295,7 @@
 				CEFB2DFA2D689649002CF95C /* AppDelegate.swift in Sources */,
 				CEF853B32D7F492300C7732D /* HeaderForSection.swift in Sources */,
 				CEEC37A32D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift in Sources */,
+				CE72AE632D95A89D007ADFD1 /* TrackerDataProvider.swift in Sources */,
 				CEB83C272D92C1B100F834F9 /* Store.swift in Sources */,
 				CEDADE7F2D78C06F005E7BD3 /* GeometricParamsForCollectionView.swift in Sources */,
 				CE319AF92D8B3E14008E441C /* TrackerModels.xcdatamodeld in Sources */,

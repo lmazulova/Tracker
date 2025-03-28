@@ -63,31 +63,31 @@ final class ItemsCell: UITableViewCell {
         titleLabel.text = title
     }
     
-    func setupSelectedSchedule(schedule: Schedule?) {
-        guard let schedule = schedule else { return }
+    func setupSelectedSchedule(schedule: Set<WeekDay>?) {
+        guard let schedule = schedule, !schedule.isEmpty else { return }
         selectedItemsLabel.isHidden = false
-        if schedule.days.count == 7 {
+        var selectedSchedule = Array(schedule)
+        if selectedSchedule.count == 7 {
             selectedItemsLabel.text = "Каждый день"
         }
         else {
-            let days = schedule.days
-                .sorted {WeekDay.allCases.firstIndex(of: $0)! < WeekDay.allCases.firstIndex(of: $1)! }
+            let days = selectedSchedule.sorted {WeekDay.allCases.firstIndex(of: $0)! < WeekDay.allCases.firstIndex(of: $1)! }
             var labelText = ""
             for day in days {
                 switch day {
-                case .monday:
+                case .Monday:
                     labelText += "Пн, "
-                case .tuesday:
+                case .Tuesday:
                     labelText += "Вт, "
-                case .wednesday:
+                case .Wednesday:
                     labelText += "Ср, "
-                case .thursday:
+                case .Thursday:
                     labelText += "Чт, "
-                case .friday:
+                case .Friday:
                     labelText += "Пт, "
-                case .saturday:
+                case .Saturday:
                     labelText += "Сб, "
-                case .sunday:
+                case .Sunday:
                     labelText += "Вс, "
                 }
             }
