@@ -36,7 +36,7 @@ final class TrackerCreationViewController: UIViewController {
     }
     
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        fatalError("[\(#function)] - init(coder:) has not been implemented")
     }
     
     // UI Elements
@@ -199,7 +199,7 @@ final class TrackerCreationViewController: UIViewController {
         tableView.dataSource = self
         collectionView.delegate = self
         collectionView.dataSource = self
-        collectionView.reloadData()
+//        collectionView.reloadData()
         textView.delegate = self
         categoryTitle = "Важное"
         setupNavigationBar()
@@ -357,8 +357,7 @@ final class TrackerCreationViewController: UIViewController {
     
     @objc private func createButtonTapped() {
         let tracker = Tracker(
-            id: UUID(),
-            title: trackerTitle!,
+            title: trackerTitle ?? "",
             color: TrackerAttributes.colors[selectedColorPath?.row ?? 0],
             emoji: TrackerAttributes.emojis[selectedEmojiPath?.row ?? 0],
             schedule: schedule, 

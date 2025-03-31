@@ -1,7 +1,6 @@
 import UIKit
 import CoreData
 
-
 final class TrackersViewController: UIViewController {
     
     // MARK: - Lifecycle
@@ -9,11 +8,23 @@ final class TrackersViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.customWhite
-        setupUI()
         trackerCategory.setupRecords()
+        setupUI()
     }
     
     // MARK: - Public Properties
+    
+    var completedTrackers: Set<TrackerRecord> = []
+    var currentDate: Date = Calendar.current.startOfDay(for: Date())
+    
+    // MARK: - Private Properties
+    
+    private let params = GeometricParamsForCollectionView(
+        cellCount: 2,
+        leftInset: 16,
+        rightInset: 16,
+        cellSpacing: 9
+    )
     
     private lazy var trackerDataProvider: DataProviderProtocol = {
         return TrackerDataProvider(delegate: self)
@@ -26,20 +37,6 @@ final class TrackersViewController: UIViewController {
     private lazy var trackerCategory: TrackerCategoryStore = {
         return TrackerCategoryStore()
     }()
-    
-    var categories: [TrackerCategory] = []
-    var categoriesArrayForUsage: [TrackerCategory] = []
-    var completedTrackers: Set<TrackerRecord> = []
-    var currentDate: Date = Calendar.current.startOfDay(for: Date())
-    
-    // MARK: - Private Properties
-    
-    private let params = GeometricParamsForCollectionView(
-        cellCount: 2,
-        leftInset: 16,
-        rightInset: 16,
-        cellSpacing: 9
-    )
     
     //UIElements
     private lazy var plusButton: UIButton = {
@@ -191,23 +188,20 @@ final class TrackersViewController: UIViewController {
             collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
-        updateUI()
+        trackerDataProvider.filterByDate(currentDate)
     }
     
     private func updateUI() {
-        let state = collectionView.visibleCells.count < 1
-        
+        let state = trackerDataProvider.numberOfSections > 0
         if searchBar.showsCancelButton == true {
-            searchStubStackView.isHidden = !state
+            searchStubStackView.isHidden = state
             stubStackView.isHidden = true
-            collectionView.isHidden = state
-            collectionView.reloadData()
+            collectionView.isHidden = !state
         }
         else {
-            stubStackView.isHidden = !state
+            stubStackView.isHidden = state
             searchStubStackView.isHidden = true
-            collectionView.isHidden = state
-            collectionView.reloadData()
+            collectionView.isHidden = !state
         }
     }
     
@@ -244,10 +238,9 @@ final class TrackersViewController: UIViewController {
     }
     @objc private func dateChanged(_ datePicker: UIDatePicker) {
         currentDate = Calendar.current.startOfDay(for: datePicker.date)
-        try? trackerDataProvider.filterByDate(currentDate)
+        trackerDataProvider.filterByDate(currentDate)
         selectedDateButton.setTitle(formattedDate(currentDate), for: .normal)
         datePickerContainer.isHidden.toggle()
-        updateUI()
     }
     
     @objc private func setupDatePicker() {
@@ -287,22 +280,39 @@ extension TrackersViewController: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TrackerCell.identifier, for: indexPath) as? TrackerCell else {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TrackerCell.identifier, for: indexPath) as? TrackerCell
+        else {
             return UICollectionViewCell()
         }
-        let tracker = trackerDataProvider.object(at: indexPath)
-        let trackerIsCompleted: Bool
-        if currentDate <= Calendar.current.startOfDay(for: Date()) {
-            trackerIsCompleted = trackerRecord.trackerIsCompleted(TrackerRecord(id: tracker!.id, date: currentDate))
-        }
-        else {
-            trackerIsCompleted = false
-        }
-        cell.configureCell(for: tracker!, with: trackerIsCompleted, counterValue: trackerRecord.amountOfRecords(for: tracker!.id), currentDate: currentDate)
         
-        cell.delegate = self
+        do {
+            let tracker = try trackerDataProvider.object(at: indexPath)
+            let trackerIsCompleted: Bool
+            if currentDate <= Calendar.current.startOfDay(for: Date()) {
+                trackerIsCompleted = trackerRecord.trackerIsCompleted(TrackerRecord(id: tracker.id, date: currentDate))
+            }
+            else {
+                trackerIsCompleted = false
+            }
+            cell.configureCell(for: tracker, with: trackerIsCompleted, counterValue: trackerRecord.amountOfRecords(for: tracker.id), currentDate: currentDate)
+            
+            cell.delegate = self
+            
+            return cell
+            
+        } catch DataProviderErrors.noSectionsAvailable {
+            print("[\(#function)] - В коллекции отсутсвуют секции.")
+        } catch DataProviderErrors.sectionOutOfRange(let index) {
+            print("[\(#function)] - Индекс секции \(index) выходит за пределы допустимых значений.")
+        } catch DataProviderErrors.rowOutOfRange(let index) {
+            print("[\(#function)] - Индекс элемента \(index) выходит за пределы допустимых значений.")
+        } catch DataProviderErrors.trackerConversionError {
+            print("[\(#function)] - Ошибка преобразования в структуру.")
+        } catch {
+            print("[\(#function)] - Непредвиденная ошибка: \(error).")
+        }
         
-        return cell
+        return UICollectionViewCell()
     }
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
@@ -343,12 +353,12 @@ extension TrackersViewController: TrackerPresenterProtocol {
     }
     
     func addTracker(_ tracker: Tracker) {
-        
-        try? trackerDataProvider.addRecord(tracker)
-        try? trackerDataProvider.filterByDate(datePicker.date)
-        
-        collectionView.isHidden = categoriesArrayForUsage.isEmpty
-        stubStackView.isHidden = !categoriesArrayForUsage.isEmpty
+        do {
+            try self.trackerDataProvider.addRecord(tracker)
+        }
+        catch {
+            print("[\(#function)] - Ошибка добавления трекера: \(error.localizedDescription)")
+        }
     }
 }
 
@@ -357,7 +367,13 @@ extension TrackersViewController: TrackerCellDelegate {
     func updateCompletedTrackers(for id: UUID) {
         let newRecord = TrackerRecord(id: id, date: currentDate)
         
-        try! trackerRecord.changeState(for: newRecord)
+        do {
+            try trackerRecord.changeState(for: newRecord)
+        }
+        catch {
+            print("[\(#function)] - Ошибка записи: \(error.localizedDescription)")
+        }
+        
     }
 }
 
@@ -371,25 +387,10 @@ extension TrackersViewController: UISearchBarDelegate {
         searchBar.resignFirstResponder()
         searchBar.text = ""
         animateCancelButton(visible: false)
-        do {
-            try trackerDataProvider.filterByDate(currentDate)
-        }
-        catch {
-            print("Ошибка фильтрации")
-            return
-        }
-        updateUI()
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        do {
-            try trackerDataProvider.filterByTitle(searchText)
-        }
-        catch {
-            print("Ошибка фильтрации")
-            return
-        }
-        updateUI()
+        trackerDataProvider.filterByTitle(searchText)
     }
     private func animateCancelButton(visible: Bool) {
         UIView.animate(withDuration: 0.1, delay: 0, options: .curveEaseInOut, animations: {
@@ -399,13 +400,27 @@ extension TrackersViewController: UISearchBarDelegate {
     }
 }
 
+// MARK: - DataProviderDelegate
 extension TrackersViewController: DataProviderDelegate {
+    func collectionFullReload() {
+        DispatchQueue.main.async {
+            self.collectionView.reloadData()
+            self.updateUI()
+        }
+    }
+    
     func deleteSections(_ indexSet: IndexSet) {
-        collectionView.deleteSections(indexSet)
+        collectionView.performBatchUpdates {
+            collectionView.deleteSections(indexSet)
+        }
+        updateUI()
     }
     
     func insertSections(_ indexSet: IndexSet) {
-        collectionView.insertSections(indexSet)
+        collectionView.performBatchUpdates {
+            collectionView.insertSections(indexSet)
+        }
+        updateUI()
     }
     
     func didUpdate(_ update: TrackerStoreUpdate) {
@@ -413,5 +428,6 @@ extension TrackersViewController: DataProviderDelegate {
             collectionView.insertItems(at: Array(update.insertedIndexes))
             collectionView.deleteItems(at: Array(update.deletedIndexes))
         }
+        updateUI()
     }
 }

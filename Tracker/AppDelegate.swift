@@ -15,10 +15,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let container = NSPersistentContainer(name: "TrackerModels")
         container.loadPersistentStores(completionHandler: {(storeDescription, error) in
             if let error = error as NSError? {
-                print("Ошибка создания контейнера")
+                print("Ошибка создания контейнера: - \(error)")
             }
         })
+        
         return container
+        
     }()
     
     // MARK: - Core Data Saving support
@@ -36,6 +38,5 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         }
     }
-
 }
 

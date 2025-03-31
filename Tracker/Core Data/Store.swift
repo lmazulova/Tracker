@@ -1,17 +1,25 @@
 import CoreData
 import UIKit
 
+// MARK: - TrackerStore
+
 final class TrackerStore: NSObject {
+    
     private let context: NSManagedObjectContext
+    
+    // MARK: - Init
     
     init(context: NSManagedObjectContext) {
         self.context = context
+        
     }
     
     convenience override init() {
         let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
         self.init(context: context)
     }
+    
+    // MARK: - Private Methods
     
     private func performSync<R>(_ action: (NSManagedObjectContext) -> Result<R, Error>) throws -> R {
         let context = self.context
@@ -35,7 +43,7 @@ final class TrackerStore: NSObject {
         return category?.first
     }
     
-    private func convertToTrackerCoreData(_ tracker: Tracker, with context: NSManagedObjectContext) throws -> TrackerCoreData {
+    private func convertToTrackerCoreDataAndSave(_ tracker: Tracker, with context: NSManagedObjectContext) throws {
         let trackerCoreData = TrackerCoreData(context: context)
         trackerCoreData.category = try? findCategory(by: tracker.category.categoryTitle, in: context)
         trackerCoreData.color = tracker.color
@@ -46,26 +54,33 @@ final class TrackerStore: NSObject {
         if let schedule = tracker.schedule {
             trackerCoreData.schedule = Int16(WeekDay.toBitmask(days: Array(schedule)))
         }
-        return trackerCoreData
     }
     
-    deinit {
-        cleanUpReferencesToPersistentStores()
-    }
+    // MARK: - Public Methods
     
     func add(_ record: Tracker) throws {
         try performSync { context in
             Result {
-                let trackerCoreData = try convertToTrackerCoreData(record, with: context)
-                
+                try convertToTrackerCoreDataAndSave(record, with: context)
                 try context.save()
             }
         }
     }
+    
+    // MARK: - Deinitialization
+    
+    deinit {
+        cleanUpReferencesToPersistentStores()
+    }
 }
 
+// MARK: - TrackerCategoryStore
+
 final class TrackerCategoryStore: NSObject {
+    
     private let context: NSManagedObjectContext
+    
+    // MARK: - Init
     
     init(context: NSManagedObjectContext) {
         self.context = context
@@ -75,6 +90,8 @@ final class TrackerCategoryStore: NSObject {
         let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
         self.init(context: context)
     }
+    
+    // MARK: - Private Methods
     
     private func performSync<R>(_ action: (NSManagedObjectContext) -> Result<R, Error>) throws -> R {
         let context = self.context
@@ -90,9 +107,8 @@ final class TrackerCategoryStore: NSObject {
         }
     }
     
-    deinit {
-        cleanUpReferencesToPersistentStores()
-    }
+    // MARK: - Public Methods
+    
     func setupRecords() {
         let checkRequest = TrackerCategoryCoreData.fetchRequest()
         guard let result = try? context.fetch(checkRequest),
@@ -105,11 +121,21 @@ final class TrackerCategoryStore: NSObject {
         
         try! context.save()
     }
+    
+    // MARK: - Deinitialization
+    
+    deinit {
+        cleanUpReferencesToPersistentStores()
+    }
 }
 
+// MARK: - TrackerRecordStore
 
 final class TrackerRecordStore: NSObject {
+    
     private let context: NSManagedObjectContext
+    
+    // MARK: - Init
     
     init(context: NSManagedObjectContext) {
         self.context = context
@@ -120,12 +146,15 @@ final class TrackerRecordStore: NSObject {
         self.init(context: context)
     }
     
+    // MARK: - Private Methods
     private func performSync<R>(_ action: (NSManagedObjectContext) -> Result<R, Error>) throws -> R {
         let context = self.context
         var result: Result<R, Error>!
         context.performAndWait { result = action(context) }
         return try result.get()
     }
+    
+    // MARK: - Public Methods
     
     func changeState(for record: TrackerRecord) throws {
         try performSync { context in

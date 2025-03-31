@@ -1,38 +1,53 @@
 import CoreData
 import UIKit
 
+// MARK: - TrackerStoreUpdate
+
 struct TrackerStoreUpdate {
     let insertedIndexes: Set<IndexPath>
     let deletedIndexes: Set<IndexPath>
 }
 
+// MARK: - Protocols
+
 protocol DataProviderProtocol {
     var numberOfSections: Int { get }
     func numberOfRowsInSection(_ section: Int) -> Int
-    func object(at indexPath: IndexPath) -> Tracker?
+    func object(at indexPath: IndexPath) throws -> Tracker
     func addRecord(_ record: Tracker) throws
-    func filterByDate(_ date: Date) throws
-    func filterByTitle(_ title: String) throws
+    func filterByDate(_ date: Date)
+    func filterByTitle(_ title: String)
     func titleForSection(_ section: Int) -> String?
 }
 
 protocol DataProviderDelegate: AnyObject {
     func didUpdate(_ update: TrackerStoreUpdate)
+    func collectionFullReload() 
     func deleteSections(_ indexSet: IndexSet)
     func insertSections(_ indexSet: IndexSet)
 }
 
+// MARK: - TrackerDataProvider
+
 final class TrackerDataProvider: NSObject {
+    
+    // MARK: - Init
     
     init(delegate: DataProviderDelegate) {
         self.delegate = delegate
+        super.init()
+        self.filterByDate(Calendar.current.startOfDay(for: Date()))
     }
+    
+    // MARK: - Delegate
     
     weak var delegate: DataProviderDelegate?
     
+    // MARK: - Private Properties
     private var insertedIndexes: Set<IndexPath>?
     private var deletedIndexes: Set<IndexPath>?
     private let context: NSManagedObjectContext = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    private var sectionsChanged: Bool = false
     
     private lazy var trackerStore: TrackerStore = {
         return TrackerStore(context: context)
@@ -50,10 +65,13 @@ final class TrackerDataProvider: NSObject {
             cacheName: nil
         )
         fetchResultController.delegate = self
+        
         try? fetchResultController.performFetch()
         
         return fetchResultController
     }()
+    
+    // MARK: - Private Methods
     
     private func convertToTracker(_ record: TrackerCoreData) -> Tracker? {
         guard let title = record.title,
@@ -67,14 +85,15 @@ final class TrackerDataProvider: NSObject {
         return Tracker(
             id: id,
             title: title,
-            color: color as! UIColor,
+            color: color as? UIColor ?? UIColor.colorSelection1,
             emoji: emoji,
             schedule: Set(schedule),
             category: TrackerCategory(categoryTitle: category.categoryTitle ?? "")
         )
     }
-   
 }
+
+// MARK: - DataProviderProtocol
 
 extension TrackerDataProvider: DataProviderProtocol {
     
@@ -86,11 +105,27 @@ extension TrackerDataProvider: DataProviderProtocol {
         fetchedResultController.sections?[section].numberOfObjects ?? 0
     }
     
-    func object(at indexPath: IndexPath) -> Tracker? {
-        let trackerRecord = fetchedResultController.object(at: indexPath)
+    func object(at indexPath: IndexPath) throws -> Tracker {
+        guard let sections = fetchedResultController.sections else {
+            throw DataProviderErrors.noSectionsAvailable
+        }
         
-        let tracker = convertToTracker(trackerRecord)
+        guard indexPath.section < sections.count else {
+            throw DataProviderErrors.sectionOutOfRange(index: indexPath.section)
+        }
         
+        let section = sections[indexPath.section]
+        
+        guard indexPath.row < section.numberOfObjects else {
+            throw DataProviderErrors.rowOutOfRange(index: indexPath.row)
+        }
+        
+        let trackerData = fetchedResultController.object(at: indexPath)
+        
+        guard let tracker = convertToTracker(trackerData) else {
+            throw DataProviderErrors.trackerConversionError
+        }
+                
         return tracker
     }
     
@@ -109,53 +144,83 @@ extension TrackerDataProvider: DataProviderProtocol {
         
         return nil
     }
-    func filterByDate(_ date: Date) throws {
+    func filterByDate(_ date: Date) {
         let weekDays: [WeekDay] = [.Sunday, .Monday, .Tuesday, .Wednesday, .Thursday, .Friday, .Saturday]
         
         let selectedWeekDay = weekDays[Calendar.current.component(.weekday, from: date) - 1].bitValue
         let dayMask = Int16(selectedWeekDay)
         let startOfDay = Calendar.current.startOfDay(for: date)
-        let predicate = NSPredicate(format: "(schedule & %d != 0) OR (schedule == nil AND createdAt >= %@ AND createdAt < %@)", dayMask, startOfDay as NSDate, Calendar.current.date(byAdding: .day, value: 1, to: startOfDay)! as NSDate)
-        
+        let predicate = NSPredicate(format: "(schedule & %d != 0) OR (schedule == 0 AND createdAt >= %@ AND createdAt < %@)", dayMask, startOfDay as NSDate, Calendar.current.date(byAdding: .day, value: 1, to: startOfDay)! as NSDate)
         fetchedResultController.fetchRequest.predicate = predicate
         
-        try? fetchedResultController.performFetch()
+        do {
+            try fetchedResultController.performFetch()
+            DispatchQueue.main.async {
+                self.delegate?.collectionFullReload()
+            }
+        }
+        catch {
+            print("[\(#function)] - ошибка фильтрации")
+        }
     }
     
-    func filterByTitle(_ title: String) throws {
-        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", title)
+    func filterByTitle(_ title: String) {
+        
+        let predicate = title.isEmpty ? nil : NSPredicate(format: "title CONTAINS[cd] %@", title)
         
         fetchedResultController.fetchRequest.predicate = predicate
         
-        try? fetchedResultController.performFetch()
+        do {
+            try fetchedResultController.performFetch()
+            DispatchQueue.main.async {
+                self.delegate?.collectionFullReload()
+            }
+        }
+        catch {
+            print("[\(#function)] - ошибка фильтрации")
+        }
     }
 }
 
+// MARK: - NSFetchedResultsControllerDelegate
+
 extension TrackerDataProvider: NSFetchedResultsControllerDelegate {
+
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<any NSFetchRequestResult>) {
         insertedIndexes = []
         deletedIndexes = []
+        sectionsChanged = false
     }
     
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<any NSFetchRequestResult>) {
-        delegate?.didUpdate(TrackerStoreUpdate(
+        
+        if !sectionsChanged {
+            delegate?.didUpdate(TrackerStoreUpdate(
                 insertedIndexes: insertedIndexes!,
-                deletedIndexes: deletedIndexes!
+                deletedIndexes: deletedIndexes!)
             )
-        )
+        }
         insertedIndexes?.removeAll()
         deletedIndexes?.removeAll()
     }
     
     func controller(_ controller: NSFetchedResultsController<any NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        guard !sectionsChanged else { return }
         switch type {
         case .delete:
             if let indexPath = indexPath {
                 deletedIndexes?.insert(indexPath)
             }
         case .insert:
-            if let indexPath = indexPath {
+            if let indexPath = newIndexPath {
                 insertedIndexes?.insert(indexPath)
+            }
+        case .move:
+            if let indexPath = indexPath {
+                deletedIndexes?.insert(indexPath)
+            }
+            if let newIndexPath = newIndexPath {
+                insertedIndexes?.insert(newIndexPath)
             }
         default:
             break
@@ -163,6 +228,7 @@ extension TrackerDataProvider: NSFetchedResultsControllerDelegate {
     }
     
     func controller(_ controller: NSFetchedResultsController<any NSFetchRequestResult>, didChange sectionInfo: any NSFetchedResultsSectionInfo, atSectionIndex sectionIndex: Int, for type: NSFetchedResultsChangeType) {
+        sectionsChanged = true
         switch type {
         case .delete:
             delegate?.deleteSections(IndexSet(integer: sectionIndex))

@@ -66,12 +66,18 @@ final class ItemsCell: UITableViewCell {
     func setupSelectedSchedule(schedule: Set<WeekDay>?) {
         guard let schedule = schedule, !schedule.isEmpty else { return }
         selectedItemsLabel.isHidden = false
-        var selectedSchedule = Array(schedule)
+        let selectedSchedule = Array(schedule)
         if selectedSchedule.count == 7 {
             selectedItemsLabel.text = "Каждый день"
         }
         else {
-            let days = selectedSchedule.sorted {WeekDay.allCases.firstIndex(of: $0)! < WeekDay.allCases.firstIndex(of: $1)! }
+            let days = selectedSchedule.sorted {
+                guard let index0 = WeekDay.allCases.firstIndex(of: $0),
+                      let index1 = WeekDay.allCases.firstIndex(of: $1) else {
+                    return false
+                }
+                return index0 < index1
+            }
             var labelText = ""
             for day in days {
                 switch day {
