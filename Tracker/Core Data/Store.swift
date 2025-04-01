@@ -1,31 +1,121 @@
 import CoreData
 import UIKit
 
-// MARK: - TrackerStore
+// MARK: - TrackerStoreUpdate
 
-final class TrackerStore: NSObject {
-    
-    private let context: NSManagedObjectContext
-    
-    // MARK: - Init
+struct TrackerStoreUpdate {
+    let insertedIndexes: Set<IndexPath>
+    let deletedIndexes: Set<IndexPath>
+}
+
+// MARK: - Protocols
+
+protocol DataProviderProtocol {
+    var numberOfSections: Int { get }
+    func numberOfRowsInSection(_ section: Int) -> Int
+    func object(at indexPath: IndexPath) throws -> Tracker
+    func addRecord(_ record: Tracker) throws
+    func filterByDate(_ date: Date)
+    func filterByTitle(_ title: String)
+    func titleForSection(_ section: Int) -> String?
+}
+
+protocol DataProviderDelegate: AnyObject {
+    func didUpdate(_ update: TrackerStoreUpdate)
+    func collectionFullReload()
+    func deleteSections(_ indexSet: IndexSet)
+    func insertSections(_ indexSet: IndexSet)
+}
+
+// MARK: - BaseStore
+
+class BaseStore: NSObject {
+    let context: NSManagedObjectContext
     
     init(context: NSManagedObjectContext) {
         self.context = context
-        
+        super.init()
+    }
+
+    convenience override init() {
+        if let context = (UIApplication.shared.delegate as? AppDelegate)?.persistentContainer.viewContext {
+            self.init(context: context)
+        } else {
+            fatalError("[\(#function)] - Unable to initialize Core Data context")
+        }
     }
     
-    convenience override init() {
-        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-        self.init(context: context)
+    func performSync<R>(_ action: (NSManagedObjectContext) -> Result<R, Error>) throws -> R {
+        let context = self.context
+        var result: Result<R, Error>?
+        
+        context.performAndWait {
+            result = action(context)
+        }
+        
+        return try result?.get() ?? {
+            throw CoreDataErrors.nilResult
+        }()
     }
+    
+}
+
+// MARK: - TrackerStore
+
+final class TrackerStore: BaseStore {
+    
+    // MARK: - Private Properties
+
+    private var insertedIndexes: Set<IndexPath> = []
+    private var deletedIndexes: Set<IndexPath> = []
+    private var sectionsChanged: Bool = false
+    
+    weak var delegate: DataProviderDelegate?
+    
+    private lazy var fetchedResultController: NSFetchedResultsController<TrackerCoreData> = {
+        
+        let fetchRequest = TrackerCoreData.fetchRequest()
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: true)]
+        
+        let fetchResultController = NSFetchedResultsController(
+            fetchRequest: fetchRequest,
+            managedObjectContext: context,
+            sectionNameKeyPath: "category",
+            cacheName: nil
+        )
+        fetchResultController.delegate = self
+        
+        try? fetchResultController.performFetch()
+        
+        return fetchResultController
+    }()
+    
+    // MARK: - Init
+
+    override init(context: NSManagedObjectContext) {
+            super.init(context: context)
+            filterByDate(Calendar.current.startOfDay(for: Date()))
+        }
     
     // MARK: - Private Methods
     
-    private func performSync<R>(_ action: (NSManagedObjectContext) -> Result<R, Error>) throws -> R {
-        let context = self.context
-        var result: Result<R, Error>!
-        context.performAndWait { result = action(context) }
-        return try result.get()
+    private func convertToTracker(_ record: TrackerCoreData) -> Tracker? {
+        guard let title = record.title,
+              let emoji = record.emoji,
+              let color = record.color,
+              let category = record.category,
+              let id = record.id else { return nil}
+        
+        let schedule = WeekDay.fromBitmask(UInt8(record.schedule))
+        
+        return Tracker(
+            id: id,
+            title: title,
+            color: color as? UIColor ?? UIColor.colorSelection1,
+            emoji: emoji,
+            schedule: Set(schedule),
+            category: TrackerCategory(categoryTitle: category.categoryTitle ?? "")
+        )
     }
     
     private func cleanUpReferencesToPersistentStores() {
@@ -55,10 +145,50 @@ final class TrackerStore: NSObject {
             trackerCoreData.schedule = Int16(WeekDay.toBitmask(days: Array(schedule)))
         }
     }
+
+    // MARK: - Deinitialization
     
-    // MARK: - Public Methods
+    deinit {
+        cleanUpReferencesToPersistentStores()
+    }
+}
+
+// MARK: - DataProviderProtocol
+
+extension TrackerStore: DataProviderProtocol {
+    var numberOfSections: Int {
+        fetchedResultController.sections?.count ?? 0
+    }
     
-    func add(_ record: Tracker) throws {
+    func numberOfRowsInSection(_ section: Int) -> Int {
+        fetchedResultController.sections?[section].numberOfObjects ?? 0
+    }
+    
+    func object(at indexPath: IndexPath) throws -> Tracker {
+        guard let sections = fetchedResultController.sections else {
+            throw CoreDataErrors.noSectionsAvailable
+        }
+        
+        guard indexPath.section < sections.count else {
+            throw CoreDataErrors.sectionOutOfRange(index: indexPath.section)
+        }
+        
+        let section = sections[indexPath.section]
+        
+        guard indexPath.row < section.numberOfObjects else {
+            throw CoreDataErrors.rowOutOfRange(index: indexPath.row)
+        }
+        
+        let trackerData = fetchedResultController.object(at: indexPath)
+        
+        guard let tracker = convertToTracker(trackerData) else {
+            throw CoreDataErrors.trackerConversionError
+        }
+                
+        return tracker
+    }
+    
+    func addRecord(_ record: Tracker) throws {
         try performSync { context in
             Result {
                 try convertToTrackerCoreDataAndSave(record, with: context)
@@ -67,38 +197,130 @@ final class TrackerStore: NSObject {
         }
     }
     
-    // MARK: - Deinitialization
+    func titleForSection(_ section: Int) -> String? {
+        guard let sections = fetchedResultController.sections, section < sections.count else {
+            return nil
+        }
+        let sectionInfo = sections[section]
+        if let trackerCoreData = sectionInfo.objects?.first as? TrackerCoreData {
+            return trackerCoreData.category?.categoryTitle
+        }
+        
+        return nil
+    }
+    func filterByDate(_ date: Date) {
+        let weekDays: [WeekDay] = [.Sunday, .Monday, .Tuesday, .Wednesday, .Thursday, .Friday, .Saturday]
+        
+        let selectedWeekDay = weekDays[Calendar.current.component(.weekday, from: date) - 1].bitValue
+        let dayMask = Int16(selectedWeekDay)
+        let startOfDay = Calendar.current.startOfDay(for: date) as NSDate
+        guard let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay as Date) as? NSDate else {
+            print("[\(#function)] - ошибка фильтрации.")
+            return
+        }
+        
+        let predicate = NSPredicate(format: "(schedule & %d != 0) OR (schedule == 0 AND createdAt >= %@ AND createdAt < %@)", dayMask, startOfDay, endOfDay)
+        fetchedResultController.fetchRequest.predicate = predicate
+        
+        do {
+            try fetchedResultController.performFetch()
+            DispatchQueue.main.async {
+                self.delegate?.collectionFullReload()
+            }
+        }
+        catch {
+            print("[\(#function)] - ошибка фильтрации.")
+        }
+    }
     
-    deinit {
-        cleanUpReferencesToPersistentStores()
+    func filterByTitle(_ title: String) {
+        
+        let predicate = title.isEmpty ? nil : NSPredicate(format: "title CONTAINS[cd] %@", title)
+        
+        fetchedResultController.fetchRequest.predicate = predicate
+        
+        do {
+            try fetchedResultController.performFetch()
+            DispatchQueue.main.async {
+                self.delegate?.collectionFullReload()
+            }
+        }
+        catch {
+            print("[\(#function)] - ошибка фильтрации")
+        }
+    }
+}
+
+// MARK: - NSFetchedResultsControllerDelegate
+
+extension TrackerStore: NSFetchedResultsControllerDelegate {
+
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<any NSFetchRequestResult>) {
+        insertedIndexes = []
+        deletedIndexes = []
+        sectionsChanged = false
+    }
+    
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<any NSFetchRequestResult>) {
+        
+        if !sectionsChanged {
+            delegate?.didUpdate(TrackerStoreUpdate(
+                insertedIndexes: insertedIndexes,
+                deletedIndexes: deletedIndexes)
+            )
+        }
+        insertedIndexes.removeAll()
+        deletedIndexes.removeAll()
+    }
+    
+    func controller(_ controller: NSFetchedResultsController<any NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        guard !sectionsChanged else { return }
+        switch type {
+        case .delete:
+            if let indexPath = indexPath {
+                deletedIndexes.insert(indexPath)
+            }
+        case .insert:
+            if let indexPath = newIndexPath {
+                insertedIndexes.insert(indexPath)
+            }
+        case .move:
+            if let indexPath = indexPath {
+                deletedIndexes.insert(indexPath)
+            }
+            if let newIndexPath = newIndexPath {
+                insertedIndexes.insert(newIndexPath)
+            }
+        default:
+            break
+        }
+    }
+    
+    func controller(_ controller: NSFetchedResultsController<any NSFetchRequestResult>, didChange sectionInfo: any NSFetchedResultsSectionInfo, atSectionIndex sectionIndex: Int, for type: NSFetchedResultsChangeType) {
+        sectionsChanged = true
+        switch type {
+        case .delete:
+            delegate?.deleteSections(IndexSet(integer: sectionIndex))
+        case .insert:
+            delegate?.insertSections(IndexSet(integer: sectionIndex))
+        default:
+            break
+        }
     }
 }
 
 // MARK: - TrackerCategoryStore
 
-final class TrackerCategoryStore: NSObject {
+final class TrackerCategoryStore: BaseStore {
     
-    private let context: NSManagedObjectContext
     
     // MARK: - Init
     
-    init(context: NSManagedObjectContext) {
-        self.context = context
-    }
-    
-    convenience override init() {
-        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-        self.init(context: context)
+    override init(context: NSManagedObjectContext) {
+        super.init(context: context)
     }
     
     // MARK: - Private Methods
-    
-    private func performSync<R>(_ action: (NSManagedObjectContext) -> Result<R, Error>) throws -> R {
-        let context = self.context
-        var result: Result<R, Error>!
-        context.performAndWait { result = action(context) }
-        return try result.get()
-    }
     
     private func cleanUpReferencesToPersistentStores() {
         context.performAndWait{
@@ -119,7 +341,7 @@ final class TrackerCategoryStore: NSObject {
         let newCategory = TrackerCategoryCoreData(context: context)
         newCategory.categoryTitle = "Важное"
         
-        try! context.save()
+        try? context.save()
     }
     
     // MARK: - Deinitialization
@@ -131,27 +353,12 @@ final class TrackerCategoryStore: NSObject {
 
 // MARK: - TrackerRecordStore
 
-final class TrackerRecordStore: NSObject {
-    
-    private let context: NSManagedObjectContext
+final class TrackerRecordStore: BaseStore {
     
     // MARK: - Init
     
-    init(context: NSManagedObjectContext) {
-        self.context = context
-    }
-    
-    convenience override init() {
-        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-        self.init(context: context)
-    }
-    
-    // MARK: - Private Methods
-    private func performSync<R>(_ action: (NSManagedObjectContext) -> Result<R, Error>) throws -> R {
-        let context = self.context
-        var result: Result<R, Error>!
-        context.performAndWait { result = action(context) }
-        return try result.get()
+    override init(context: NSManagedObjectContext) {
+        super.init(context: context)
     }
     
     // MARK: - Public Methods

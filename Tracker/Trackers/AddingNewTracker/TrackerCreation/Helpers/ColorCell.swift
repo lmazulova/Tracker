@@ -13,7 +13,7 @@ final class ColorCell: UICollectionViewCell {
     
     private let view: UIView = {
         let view = UIView()
-        view.layer.cornerRadius = 16
+        view.layer.cornerRadius = 8
         view.layer.borderWidth = 3
         view.translatesAutoresizingMaskIntoConstraints = false
         view.layer.borderColor = UIColor.customWhite.cgColor

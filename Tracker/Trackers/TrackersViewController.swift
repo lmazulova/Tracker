@@ -1,5 +1,5 @@
 import UIKit
-import CoreData
+
 
 final class TrackersViewController: UIViewController {
     
@@ -27,7 +27,9 @@ final class TrackersViewController: UIViewController {
     )
     
     private lazy var trackerDataProvider: DataProviderProtocol = {
-        return TrackerDataProvider(delegate: self)
+        let trackerStore = TrackerStore()
+        trackerStore.delegate = self
+        return trackerStore
     }()
     
     private lazy var trackerRecord: TrackerRecordStore = {
@@ -300,13 +302,13 @@ extension TrackersViewController: UICollectionViewDataSource {
             
             return cell
             
-        } catch DataProviderErrors.noSectionsAvailable {
+        } catch CoreDataErrors.noSectionsAvailable {
             print("[\(#function)] - В коллекции отсутсвуют секции.")
-        } catch DataProviderErrors.sectionOutOfRange(let index) {
+        } catch CoreDataErrors.sectionOutOfRange(let index) {
             print("[\(#function)] - Индекс секции \(index) выходит за пределы допустимых значений.")
-        } catch DataProviderErrors.rowOutOfRange(let index) {
+        } catch CoreDataErrors.rowOutOfRange(let index) {
             print("[\(#function)] - Индекс элемента \(index) выходит за пределы допустимых значений.")
-        } catch DataProviderErrors.trackerConversionError {
+        } catch CoreDataErrors.trackerConversionError {
             print("[\(#function)] - Ошибка преобразования в структуру.")
         } catch {
             print("[\(#function)] - Непредвиденная ошибка: \(error).")

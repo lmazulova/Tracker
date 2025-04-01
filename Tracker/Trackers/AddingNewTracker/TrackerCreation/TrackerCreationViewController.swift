@@ -391,7 +391,7 @@ extension TrackerCreationViewController: UITableViewDelegate {
                 setSchedule(for: selectedWeekDays)
                 self.tableView.reloadData()
             }
-            present(scheduleViewController, animated: false)
+            present(scheduleViewController, animated: true)
         default:
             return
         }
