@@ -1,5 +1,6 @@
 import UIKit
 
+
 final class TrackersViewController: UIViewController {
     
     // MARK: - Lifecycle
@@ -7,13 +8,12 @@ final class TrackersViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.customWhite
+        trackerCategory.setupRecords()
         setupUI()
     }
     
     // MARK: - Public Properties
     
-    var categories: [TrackerCategory] = []
-    var categoriesArrayForUsage: [TrackerCategory] = []
     var completedTrackers: Set<TrackerRecord> = []
     var currentDate: Date = Calendar.current.startOfDay(for: Date())
     
@@ -25,6 +25,20 @@ final class TrackersViewController: UIViewController {
         rightInset: 16,
         cellSpacing: 9
     )
+    
+    private lazy var trackerDataProvider: DataProviderProtocol = {
+        let trackerStore = TrackerStore()
+        trackerStore.delegate = self
+        return trackerStore
+    }()
+    
+    private lazy var trackerRecord: TrackerRecordStore = {
+        return TrackerRecordStore()
+    }()
+    
+    private lazy var trackerCategory: TrackerCategoryStore = {
+        return TrackerCategoryStore()
+    }()
     
     //UIElements
     private lazy var plusButton: UIButton = {
@@ -176,23 +190,20 @@ final class TrackersViewController: UIViewController {
             collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
-        updateUI()
+        trackerDataProvider.filterByDate(currentDate)
     }
     
     private func updateUI() {
-        let state = categoriesArrayForUsage.isEmpty
-        
+        let state = trackerDataProvider.numberOfSections > 0
         if searchBar.showsCancelButton == true {
-            searchStubStackView.isHidden = !state
+            searchStubStackView.isHidden = state
             stubStackView.isHidden = true
-            collectionView.isHidden = state
-            collectionView.reloadData()
+            collectionView.isHidden = !state
         }
         else {
-            stubStackView.isHidden = !state
+            stubStackView.isHidden = state
             searchStubStackView.isHidden = true
-            collectionView.isHidden = state
-            collectionView.reloadData()
+            collectionView.isHidden = !state
         }
     }
     
@@ -229,10 +240,9 @@ final class TrackersViewController: UIViewController {
     }
     @objc private func dateChanged(_ datePicker: UIDatePicker) {
         currentDate = Calendar.current.startOfDay(for: datePicker.date)
-        filterByDates(by: currentDate)
+        trackerDataProvider.filterByDate(currentDate)
         selectedDateButton.setTitle(formattedDate(currentDate), for: .normal)
         datePickerContainer.isHidden.toggle()
-        updateUI()
     }
     
     @objc private func setupDatePicker() {
@@ -254,32 +264,6 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Private Methods
     
-    private func countRecordsByID(records: Set<TrackerRecord>, by id: UUID) -> Int {
-        var counts: [UUID: Int] = [:]
-        
-        for record in records {
-            counts[record.id, default: 0] += 1
-        }
-        return counts[id] ?? 0
-    }
-    
-    private func filterByDates(by selectedDate: Date) {
-        let weekDays: [WeekDay] = [.sunday, .monday, .tuesday, .wednesday, .thursday, .friday, .saturday]
-        let selectedWeekDay = weekDays[Calendar.current.component(.weekday, from: selectedDate) - 1]
-        
-        categoriesArrayForUsage = categories.compactMap { category in
-            let filteredTrackers = category.trackersInCategory.filter { $0.schedule?.days.contains(selectedWeekDay) == true || ($0.schedule == nil && selectedDate == Calendar.current.startOfDay(for: Date()))}
-            return filteredTrackers.isEmpty ? nil : TrackerCategory(categoryTitle: category.categoryTitle, trackersInCategory: filteredTrackers)
-        }
-    }
-    
-    private func filterByTitles(by text: String) {
-        categoriesArrayForUsage = categories.compactMap {category in
-            let filteredTrackers = category.trackersInCategory.filter { $0.title.lowercased().contains(text.lowercased()) }
-            return filteredTrackers.isEmpty ? nil : TrackerCategory(categoryTitle: category.categoryTitle, trackersInCategory: filteredTrackers)
-        }
-    }
-    
     private func formattedDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "dd.MM.yy"
@@ -287,42 +271,55 @@ final class TrackersViewController: UIViewController {
     }
 }
 
-// MARK: - UICollectionViewDelegate
-extension TrackersViewController: UICollectionViewDelegate {
-    
-}
-
 // MARK: - UICollectionViewDataSource
 extension TrackersViewController: UICollectionViewDataSource {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        categoriesArrayForUsage.isEmpty ? 0 : categoriesArrayForUsage.count
+        trackerDataProvider.numberOfSections
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return categoriesArrayForUsage.isEmpty ? 0 : categoriesArrayForUsage[section].trackersInCategory.count
+        trackerDataProvider.numberOfRowsInSection(section)
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TrackerCell.identifier, for: indexPath) as? TrackerCell else {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TrackerCell.identifier, for: indexPath) as? TrackerCell
+        else {
             return UICollectionViewCell()
         }
-        let tracker = categoriesArrayForUsage[indexPath.section].trackersInCategory[indexPath.row]
-        let trackerIsCompleted: Bool
-        if currentDate <= Calendar.current.startOfDay(for: Date()) {
-            trackerIsCompleted = completedTrackers.contains(TrackerRecord(id: tracker.id, date: currentDate))
-        }
-        else {
-            trackerIsCompleted = false
-        }
-        cell.configureCell(for: tracker, with: trackerIsCompleted, counterValue: countRecordsByID(records: completedTrackers, by: tracker.id), currentDate: currentDate)
-        cell.delegate = self
         
-        return cell
+        do {
+            let tracker = try trackerDataProvider.object(at: indexPath)
+            let trackerIsCompleted: Bool
+            if currentDate <= Calendar.current.startOfDay(for: Date()) {
+                trackerIsCompleted = trackerRecord.trackerIsCompleted(TrackerRecord(id: tracker.id, date: currentDate))
+            }
+            else {
+                trackerIsCompleted = false
+            }
+            cell.configureCell(for: tracker, with: trackerIsCompleted, counterValue: trackerRecord.amountOfRecords(for: tracker.id), currentDate: currentDate)
+            
+            cell.delegate = self
+            
+            return cell
+            
+        } catch CoreDataErrors.noSectionsAvailable {
+            print("[\(#function)] - В коллекции отсутсвуют секции.")
+        } catch CoreDataErrors.sectionOutOfRange(let index) {
+            print("[\(#function)] - Индекс секции \(index) выходит за пределы допустимых значений.")
+        } catch CoreDataErrors.rowOutOfRange(let index) {
+            print("[\(#function)] - Индекс элемента \(index) выходит за пределы допустимых значений.")
+        } catch CoreDataErrors.trackerConversionError {
+            print("[\(#function)] - Ошибка преобразования в структуру.")
+        } catch {
+            print("[\(#function)] - Непредвиденная ошибка: \(error).")
+        }
+        
+        return UICollectionViewCell()
     }
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         guard let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "header", for: indexPath) as? HeaderForSection else { return UICollectionReusableView()}
-        view.titleLabel.text = categoriesArrayForUsage[indexPath.section].categoryTitle
+        view.titleLabel.text = trackerDataProvider.titleForSection(indexPath.section)
         return view
     }
 }
@@ -357,48 +354,28 @@ extension TrackersViewController: TrackerPresenterProtocol {
         self.dismiss(animated: true)
     }
     
-    func addTracker(for category: TrackerCategory) {
-        var newCategories = categories
-        if let index = newCategories.firstIndex(where: {$0.categoryTitle == category.categoryTitle}) {
-            let updatedCategory = TrackerCategory(
-                categoryTitle: category.categoryTitle,
-                trackersInCategory: newCategories[index].trackersInCategory + category.trackersInCategory
-            )
-            newCategories[index] = updatedCategory
-        } else {
-            newCategories.append(category)
+    func addTracker(_ tracker: Tracker) {
+        do {
+            try self.trackerDataProvider.addRecord(tracker)
         }
-        categories = newCategories
-        
-        filterByDates(by: datePicker.date)
-        
-        collectionView.performBatchUpdates({
-            if categoriesArrayForUsage.isEmpty {
-                updateUI()
-            }
-            else if let index = categoriesArrayForUsage.firstIndex(where: {$0.categoryTitle == category.categoryTitle}) {
-                if collectionView.numberOfSections > index {
-                    collectionView.reloadSections(IndexSet(integer: index))
-                }
-                else {
-                    collectionView.insertSections(IndexSet(integer: index))
-                }
-            }
-        })
-        collectionView.isHidden = categoriesArrayForUsage.isEmpty
-        stubStackView.isHidden = !categoriesArrayForUsage.isEmpty
+        catch {
+            print("[\(#function)] - Ошибка добавления трекера: \(error.localizedDescription)")
+        }
     }
 }
 
 // MARK: - TrackerCellDelegate
 extension TrackersViewController: TrackerCellDelegate {
     func updateCompletedTrackers(for id: UUID) {
-        let trackerRecord = TrackerRecord(id: id, date: currentDate)
-        if completedTrackers.contains(trackerRecord) {
-            completedTrackers.remove(trackerRecord)
-        } else {
-            completedTrackers.insert(trackerRecord)
+        let newRecord = TrackerRecord(id: id, date: currentDate)
+        
+        do {
+            try trackerRecord.changeState(for: newRecord)
         }
+        catch {
+            print("[\(#function)] - Ошибка записи: \(error.localizedDescription)")
+        }
+        
     }
 }
 
@@ -412,18 +389,47 @@ extension TrackersViewController: UISearchBarDelegate {
         searchBar.resignFirstResponder()
         searchBar.text = ""
         animateCancelButton(visible: false)
-        filterByDates(by: currentDate)
-        updateUI()
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        filterByTitles(by: searchText)
-        updateUI()
+        trackerDataProvider.filterByTitle(searchText)
     }
     private func animateCancelButton(visible: Bool) {
         UIView.animate(withDuration: 0.1, delay: 0, options: .curveEaseInOut, animations: {
             self.searchBar.showsCancelButton = visible
             self.searchBar.layoutIfNeeded()
         })
+    }
+}
+
+// MARK: - DataProviderDelegate
+extension TrackersViewController: DataProviderDelegate {
+    func collectionFullReload() {
+        DispatchQueue.main.async {
+            self.collectionView.reloadData()
+            self.updateUI()
+        }
+    }
+    
+    func deleteSections(_ indexSet: IndexSet) {
+        collectionView.performBatchUpdates {
+            collectionView.deleteSections(indexSet)
+        }
+        updateUI()
+    }
+    
+    func insertSections(_ indexSet: IndexSet) {
+        collectionView.performBatchUpdates {
+            collectionView.insertSections(indexSet)
+        }
+        updateUI()
+    }
+    
+    func didUpdate(_ update: TrackerStoreUpdate) {
+        collectionView.performBatchUpdates{
+            collectionView.insertItems(at: Array(update.insertedIndexes))
+            collectionView.deleteItems(at: Array(update.deletedIndexes))
+        }
+        updateUI()
     }
 }
