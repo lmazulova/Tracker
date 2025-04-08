@@ -13,6 +13,8 @@
 		CE319AD22D89E07D008E441C /* ItemsCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE319AD12D89E07D008E441C /* ItemsCell.swift */; };
 		CE319AF92D8B3E14008E441C /* TrackerModels.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = CE319AF72D8B3E14008E441C /* TrackerModels.xcdatamodeld */; };
 		CE3EF96C2D9ACCF700E1890D /* CoreDataErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3EF96B2D9ACCF700E1890D /* CoreDataErrors.swift */; };
+		CEB00B2B2DA54FC800F703C6 /* OnboardingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB00B2A2DA54FC800F703C6 /* OnboardingViewController.swift */; };
+		CEB00B2D2DA5501400F703C6 /* OnboardingPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB00B2C2DA5500F00F703C6 /* OnboardingPage.swift */; };
 		CEB83C272D92C1B100F834F9 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB83C262D92C1B100F834F9 /* Store.swift */; };
 		CEDADE7F2D78C06F005E7BD3 /* GeometricParamsForCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDADE7E2D78C06F005E7BD3 /* GeometricParamsForCollectionView.swift */; };
 		CEEC37A32D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEC37A22D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift */; };
@@ -41,6 +43,8 @@
 		CE319AD12D89E07D008E441C /* ItemsCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemsCell.swift; sourceTree = "<group>"; };
 		CE319AF82D8B3E14008E441C /* TrackerModels.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = TrackerModels.xcdatamodel; sourceTree = "<group>"; };
 		CE3EF96B2D9ACCF700E1890D /* CoreDataErrors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataErrors.swift; sourceTree = "<group>"; };
+		CEB00B2A2DA54FC800F703C6 /* OnboardingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewController.swift; sourceTree = "<group>"; };
+		CEB00B2C2DA5500F00F703C6 /* OnboardingPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPage.swift; sourceTree = "<group>"; };
 		CEB83C262D92C1B100F834F9 /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
 		CEDADE7E2D78C06F005E7BD3 /* GeometricParamsForCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeometricParamsForCollectionView.swift; sourceTree = "<group>"; };
 		CEEC37A22D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerPresenterProtocol.swift; sourceTree = "<group>"; };
@@ -135,6 +139,15 @@
 			path = Model;
 			sourceTree = "<group>";
 		};
+		CEB00B292DA54F8D00F703C6 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				CEB00B2A2DA54FC800F703C6 /* OnboardingViewController.swift */,
+				CEB00B2C2DA5500F00F703C6 /* OnboardingPage.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
 		CEFB2DED2D689649002CF95C = {
 			isa = PBXGroup;
 			children = (
@@ -156,6 +169,7 @@
 			children = (
 				CEFB2DF92D689649002CF95C /* AppDelegate.swift */,
 				CEFB2DFB2D689649002CF95C /* SceneDelegate.swift */,
+				CEB00B292DA54F8D00F703C6 /* Onboarding */,
 				CEFB2E7D2D70AD56002CF95C /* TrackerStructures */,
 				CEFB2E0F2D68C5BC002CF95C /* Statistics */,
 				CEFB2E0E2D68C581002CF95C /* Trackers */,
@@ -293,10 +307,12 @@
 				CEEC37A32D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift in Sources */,
 				CEB83C272D92C1B100F834F9 /* Store.swift in Sources */,
 				CEDADE7F2D78C06F005E7BD3 /* GeometricParamsForCollectionView.swift in Sources */,
+				CEB00B2B2DA54FC800F703C6 /* OnboardingViewController.swift in Sources */,
 				CE319AF92D8B3E14008E441C /* TrackerModels.xcdatamodeld in Sources */,
 				CEFB2DFC2D689649002CF95C /* SceneDelegate.swift in Sources */,
 				CE3EF96C2D9ACCF700E1890D /* CoreDataErrors.swift in Sources */,
 				CEFB2E7F2D70AD8F002CF95C /* Tracker&Schedule.swift in Sources */,
+				CEB00B2D2DA5501400F703C6 /* OnboardingPage.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
