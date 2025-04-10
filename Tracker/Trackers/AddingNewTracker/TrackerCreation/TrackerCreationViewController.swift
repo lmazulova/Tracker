@@ -14,9 +14,14 @@ final class TrackerCreationViewController: UIViewController {
     var identifier: ControllersIdentifier
     
     // MARK: - Private Properties
+    private lazy var categoryViewController = {
+        let controller = CategoryViewController()
+        return controller
+    }()
     
     private var scheduleSelected: Bool = false
-    private var titleFilled: Bool = false
+    private var trackerTitleFilled: Bool = false
+    private var categoryTitleFilled: Bool = false
     private var schedule: Set<WeekDay>?
     private var trackerTitle: String?
     private var categoryTitle: String?
@@ -33,6 +38,12 @@ final class TrackerCreationViewController: UIViewController {
     init(identifier: ControllersIdentifier) {
         self.identifier = identifier
         super.init(nibName: nil, bundle: nil)
+    }
+    
+    func setupCategoryTitle(_ title: String) {
+        categoryTitle = title
+        categoryTitleFilled = true
+        checkingButtonActivation()
     }
     
     required init?(coder: NSCoder) {
@@ -199,9 +210,8 @@ final class TrackerCreationViewController: UIViewController {
         tableView.dataSource = self
         collectionView.delegate = self
         collectionView.dataSource = self
-//        collectionView.reloadData()
         textView.delegate = self
-        categoryTitle = "Важное"
+//        categoryTitle = "Важное"
         setupNavigationBar()
         setupConstraints()
         setupActions()
@@ -320,11 +330,11 @@ final class TrackerCreationViewController: UIViewController {
     
     // MARK: - Private Methods
     private func checkingButtonActivation() {
-        if identifier == ControllersIdentifier.irregularEvent && titleFilled && selectedColorPath != nil && selectedEmojiPath != nil {
+        if identifier == ControllersIdentifier.irregularEvent && trackerTitleFilled && categoryTitleFilled && selectedColorPath != nil && selectedEmojiPath != nil {
             createButton.backgroundColor = UIColor.customBlack
             createButton.isEnabled = true
         }
-        else if titleFilled && scheduleSelected && selectedColorPath != nil && selectedEmojiPath != nil {
+        else if trackerTitleFilled && categoryTitleFilled && scheduleSelected && selectedColorPath != nil && selectedEmojiPath != nil {
             createButton.backgroundColor = UIColor.customBlack
             createButton.isEnabled = true
         }
@@ -346,7 +356,7 @@ final class TrackerCreationViewController: UIViewController {
     
     private func setTitle(title: String) {
         trackerTitle = title
-        titleFilled = true
+        trackerTitleFilled = true
         checkingButtonActivation()
     }
     
@@ -372,7 +382,7 @@ final class TrackerCreationViewController: UIViewController {
         warningLabel.isHidden = true
         deleteButton.isHidden = true
         placeHolderLabel.isHidden = false
-        titleFilled = false
+        trackerTitleFilled = false
         checkingButtonActivation()
     }
 }
@@ -383,7 +393,15 @@ extension TrackerCreationViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         switch indexPath.row {
         case 0:
-            return
+            if let categoryTitle = categoryTitle {
+                categoryViewController.lastSelectedTitle(categoryTitle)
+            }
+            categoryViewController.setupCategoryTitle = { [weak self] title in
+                guard let self = self else { return }
+                setupCategoryTitle(title)
+                self.tableView.reloadData()
+            }
+            present(categoryViewController, animated: true)
         case 1:
             let scheduleViewController = ScheduleViewController()
             scheduleViewController.addSchedule = { [weak self] selectedWeekDays in
@@ -412,7 +430,7 @@ extension TrackerCreationViewController: UITableViewDataSource {
         }
         if indexPath.row == 0 {
             cell.setupCellTitle(title: "Категория")
-            cell.setupSelectedCategory(title: categoryTitle)
+            cell.setupSelectedCategory(title: categoryTitle ?? "")
             if identifier == ControllersIdentifier.irregularEvent {
                 cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: tableView.bounds.width)
             }
@@ -433,14 +451,14 @@ extension TrackerCreationViewController: UITextViewDelegate {
         placeHolderLabel.isHidden = !textView.text.isEmpty
         if textView.text.isEmpty {
             warningLabel.isHidden = true
-            titleFilled = false
+            trackerTitleFilled = false
             checkingButtonActivation()
             return
         }
         
         if textView.text.count > characterLimit {
             warningLabel.isHidden = false
-            titleFilled = false
+            trackerTitleFilled = false
             checkingButtonActivation()
         }
         

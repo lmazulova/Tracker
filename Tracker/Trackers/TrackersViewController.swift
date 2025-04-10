@@ -8,7 +8,7 @@ final class TrackersViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.customWhite
-        trackerCategory.setupRecords()
+//        trackerCategory.setupRecords()
         setupUI()
     }
     
@@ -26,7 +26,7 @@ final class TrackersViewController: UIViewController {
         cellSpacing: 9
     )
     
-    private lazy var trackerDataProvider: DataProviderProtocol = {
+    private lazy var trackerDataProvider: TrackerDataProviderProtocol = {
         let trackerStore = TrackerStore()
         trackerStore.delegate = self
         return trackerStore

@@ -7,4 +7,5 @@ enum CoreDataErrors: Error {
     case rowOutOfRange(index: Int)
     case trackerConversionError
     case nilResult
+    case categoryConversionError
 }
