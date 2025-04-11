@@ -1,26 +1,24 @@
 import UIKit
 
 final class CategoryViewController: UIViewController {
+    //MARK: - ViewModel
+    private var viewModel: CategoryViewModelProtocol
     
-    func addNewCategory(with title: String) {
-        try? categoryDataProvider.addRecord(with: title)
+    init(viewModel: CategoryViewModelProtocol = CategoryViewModel()) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+        self.bind()
     }
     
-    var setupCategoryTitle: ((String) -> Void)?
-
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    //MARK: - Private Properties
     private var categoryTitle: String = ""
     private var tableViewHeightConstraint: NSLayoutConstraint?
     
-    private lazy var categoryDataProvider: CategoryDataProviderProtocol = {
-        let store = TrackerCategoryStore()
-        store.delegate = self
-        return store
-    }()
-    
-    func lastSelectedTitle(_ title: String) {
-        categoryTitle = title
-    }
-    
+    // UI Elements
     private lazy var tableView: UITableView = {
         let tableView = UITableView()
         tableView.backgroundColor = .customBackground
@@ -95,6 +93,30 @@ final class CategoryViewController: UIViewController {
         return button
     }()
     
+    //MARK: - Bindings
+    
+    private func bind() {
+        
+        viewModel.visibleDataChanged = { [weak self] _ in
+            guard let self = self else { return }
+            self.tableView.reloadData()
+            self.updateUI()
+        }
+    }
+    
+    var setupCategoryTitle: Binding<String>?
+    
+    //MARK: - Public Methods
+    
+    func addNewCategory(with title: String) {
+        viewModel.addRecord(with: title)
+    }
+    
+    func lastSelectedTitle(_ title: String) {
+        categoryTitle = title
+    }
+    
+    //MARK: - Lifecycle Methods
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .customWhite
@@ -107,6 +129,7 @@ final class CategoryViewController: UIViewController {
         updateUI()
     }
     
+    //MARK: - UI Configuration
     private func setupConstraints() {
         view.addSubview(addCategoryButton)
         view.addSubview(navigationBar)
@@ -146,7 +169,7 @@ final class CategoryViewController: UIViewController {
     }
     
     private func updateUI() {
-        let numberOfRows = categoryDataProvider.numberOfRows
+        let numberOfRows = viewModel.numberOfRows()
         let state = numberOfRows > 0
         
         stubContainer.isHidden = state
@@ -159,24 +182,28 @@ final class CategoryViewController: UIViewController {
         
     }
     
+    //MARK: - Actions
     @objc private func addCategory() {
-        // newCategoryController высвобождается из памяте при каждом вызове dismiss внутри себя, поэтому уместно каждый раз создавать его заново
+        // newCategoryController высвобождается из памяти при каждом вызове dismiss внутри себя, поэтому уместно каждый раз создавать его заново
         let newCategoryController = NewCategoryViewController()
-        newCategoryController.delegate = self
+        newCategoryController.updateCategories = { [weak self] title in
+            self?.addNewCategory(with: title)
+        }
         present(newCategoryController, animated: true)
     }
 }
 
+//MARK: - UITableViewDelegate
+
 extension CategoryViewController: UITableViewDelegate {
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let title = try? categoryDataProvider.title(at: indexPath) else {
+        guard let cell = tableView.cellForRow(at: indexPath) as? CategoryCell else {
             return
         }
-        categoryTitle = title
-        if let cell = tableView.cellForRow(at: indexPath) {
-            cell.accessoryType = .checkmark
-        }
-        self.setupCategoryTitle?(categoryTitle)
+        viewModel.selectCategory(at: indexPath)
+        cell.setup(with: viewModel.cellViewModel(at: indexPath))
+        setupCategoryTitle?(viewModel.selectedCategoryTitle ?? "")
         self.dismiss(animated: true)
     }
     
@@ -187,9 +214,12 @@ extension CategoryViewController: UITableViewDelegate {
     }
 }
 
+
+//MARK: - UITableViewDataSource
+
 extension CategoryViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        categoryDataProvider.numberOfRows
+        viewModel.numberOfRows()
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -198,30 +228,14 @@ extension CategoryViewController: UITableViewDataSource {
             return UITableViewCell()
         }
         
-        do {
-            let title = try categoryDataProvider.title(at: indexPath)
-            if categoryTitle == title {
-                cell.setupCheckmark()
-            }
-            cell.setupCellTitle(title)
-            
-            return cell
-        }
-        catch CoreDataErrors.categoryConversionError {
-            print("[\(#function)] - Ошибка записи: CoreDataErrors.categoryConversionError.")
-        }
-        catch {
-            print("[\(#function)] - Непредвиденная ошибка: \(error.localizedDescription).")
+        let cellViewModel = viewModel.cellViewModel(at: indexPath)
+        cell.setup(with: cellViewModel)
+        
+        if indexPath.row == tableView.numberOfRows(inSection: indexPath.section) - 1 {
+            cell.separatorInset = UIEdgeInsets(top: 0, left: tableView.bounds.width, bottom: 0, right: 0)
         }
         
-        return UITableViewCell()
-    }
-    
-    func didUpdate(_ update: TrackerStoreUpdate) {
-        tableView.performBatchUpdates{
-            tableView.insertRows(at: Array(update.insertedIndexes), with: .automatic)
-            tableView.deleteRows(at: Array(update.deletedIndexes), with: .automatic)
-        }
-        updateUI()
+        return cell
+        
     }
 }

@@ -3,23 +3,53 @@ import CoreData
 
 protocol CategoryDataProviderProtocol {
     var numberOfRows: Int { get }
-    func title(at indexPath: IndexPath) throws -> String
+    func object(at indexPath: IndexPath) throws -> TrackerCategory
     
     func addRecord(with title: String) throws
 }
 
-final class TrackerCategoryStore: BaseStore {
+protocol TrackerCategoryStoreDelegate: AnyObject {
+    func didUpdate(_ update: TrackerStoreUpdate)
+}
+
+final class TrackerCategoryStore: NSObject {
     
-    weak var delegate: CategoryViewController?
+    static let shared = TrackerCategoryStore()
+    
+    let context: NSManagedObjectContext
+    
+    init(context: NSManagedObjectContext) {
+        self.context = context
+    }
+
+    convenience override init() {
+        if let context = (UIApplication.shared.delegate as? AppDelegate)?.persistentContainer.viewContext {
+            self.init(context: context)
+        } else {
+            fatalError("[\(#function)] - Unable to initialize Core Data context")
+        }
+    }
+    
+    func performSync<R>(_ action: (NSManagedObjectContext) -> Result<R, Error>) throws -> R {
+        let context = self.context
+        var result: Result<R, Error>?
+        
+        context.performAndWait {
+            result = action(context)
+        }
+        
+        return try result?.get() ?? {
+            throw CoreDataErrors.nilResult
+        }()
+    }
+    
+    weak var delegate: TrackerCategoryStoreDelegate?
     
     private var insertedIndexes: Set<IndexPath> = []
     private var deletedIndexes: Set<IndexPath> = []
     
     // MARK: - Init
-    
-    override init(context: NSManagedObjectContext) {
-        super.init(context: context)
-    }
+
     
     // MARK: - Private Methods
     
@@ -29,22 +59,7 @@ final class TrackerCategoryStore: BaseStore {
             try? coordinator.persistentStores.forEach(coordinator.remove)
         }
     }
-    
-    // MARK: - Public Methods
-    
-//    func setupRecords() {
-//        let checkRequest = TrackerCategoryCoreData.fetchRequest()
-//        guard let result = try? context.fetch(checkRequest),
-//           result.isEmpty
-//        else {
-//            return
-//        }
-//        let newCategory = TrackerCategoryCoreData(context: context)
-//        newCategory.categoryTitle = "Важное"
-//        newCategory.createdAt = Date()
-//        
-//        try? context.save()
-//    }
+
     
     // MARK: - Deinitialization
     
@@ -85,11 +100,11 @@ extension TrackerCategoryStore: CategoryDataProviderProtocol {
     }
     
     
-    func title(at indexPath: IndexPath) throws -> String {
+    func object(at indexPath: IndexPath) throws -> TrackerCategory {
         
         guard let numberOfRows = fetchedResultController.fetchedObjects?.count,
               indexPath.row < numberOfRows else {
-            throw CoreDataErrors.sectionOutOfRange(index: indexPath.section)
+            throw CoreDataErrors.rowOutOfRange(index: indexPath.row)
         }
         
         let categoryData = fetchedResultController.object(at: indexPath)
@@ -97,8 +112,10 @@ extension TrackerCategoryStore: CategoryDataProviderProtocol {
         guard let title = categoryData.categoryTitle else {
             throw CoreDataErrors.categoryConversionError
         }
+        
+        let trackerCategory = TrackerCategory(categoryTitle: title)
           
-        return title
+        return trackerCategory
     }
     
     var numberOfRows: Int {

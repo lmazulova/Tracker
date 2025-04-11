@@ -1,12 +1,36 @@
 import UIKit
 import CoreData
 
-final class TrackerRecordStore: BaseStore {
+final class TrackerRecordStore {
     
     // MARK: - Init
+    static let shared = TrackerRecordStore()
     
-    override init(context: NSManagedObjectContext) {
-        super.init(context: context)
+    let context: NSManagedObjectContext
+    
+    init(context: NSManagedObjectContext) {
+        self.context = context
+    }
+
+    convenience init() {
+        if let context = (UIApplication.shared.delegate as? AppDelegate)?.persistentContainer.viewContext {
+            self.init(context: context)
+        } else {
+            fatalError("[\(#function)] - Unable to initialize Core Data context")
+        }
+    }
+    
+    func performSync<R>(_ action: (NSManagedObjectContext) -> Result<R, Error>) throws -> R {
+        let context = self.context
+        var result: Result<R, Error>?
+        
+        context.performAndWait {
+            result = action(context)
+        }
+        
+        return try result?.get() ?? {
+            throw CoreDataErrors.nilResult
+        }()
     }
     
     // MARK: - Public Methods

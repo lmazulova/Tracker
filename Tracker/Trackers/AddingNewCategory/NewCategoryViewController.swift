@@ -2,48 +2,41 @@ import UIKit
 
 final class NewCategoryViewController: UIViewController {
     
-    weak var delegate: CategoryViewController?
+    //MARK: - ViewModel
+    
+    private var viewModel: NewCategoryViewModel
+    
+    init(viewModel: NewCategoryViewModel = NewCategoryViewModel()) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+        self.bind()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    //MARK: - Bindings
+    
+    var updateCategories: Binding<String>?
+    
+    private func bind() {
+        viewModel.isButtonEnabled = { [weak self] state in
+            self?.doneButton.isEnabled = state
+            self?.doneButton.backgroundColor = state ? .customBlack : .customGray
+        }
+        
+        viewModel.categoryTitleIsChanged = { [weak self] title in
+            self?.placeHolderLabel.isHidden = !title.isEmpty
+            self?.deleteButton.isHidden = title.isEmpty
+            self?.categoryTitle = title
+        }
+    }
+    
+    
+    //MARK: - UI Elements
     
     private var categoryTitle: String = ""
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = .customWhite
-        setupNavigationBar()
-        setupConstraints()
-    }
-    
-    private func setupConstraints() {
-        view.addSubview(navigationBar)
-        view.addSubview(doneButton)
-        view.addSubview(textFieldView)
-        
-        NSLayoutConstraint.activate([
-            navigationBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            navigationBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            navigationBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            textFieldView.topAnchor.constraint(equalTo: navigationBar.bottomAnchor, constant: 24),
-            textFieldView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            textFieldView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            textFieldView.heightAnchor.constraint(equalToConstant: 75),
-            doneButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
-            doneButton.heightAnchor.constraint(equalToConstant: 60)
-        ])
-    }
-    
-    private func setupNavigationBar() {
-        navigationBar.translatesAutoresizingMaskIntoConstraints = false
-        let title = UINavigationItem(title: "Новая категория")
-        navigationBar.setItems([title], animated: false)
-        navigationBar.titleTextAttributes = [
-            .font: UIFont.systemFont(ofSize: 16, weight: .medium),
-            .foregroundColor: UIColor.customBlack
-        ]
-        navigationBar.barTintColor = .customWhite
-        navigationBar.isTranslucent = false
-        navigationBar.shadowImage = UIImage()
-    }
     
     private let navigationBar = UINavigationBar()
     
@@ -137,32 +130,70 @@ final class NewCategoryViewController: UIViewController {
         return view
     }()
     
-    @objc private func clearTextView() {
-        textView.text = ""
-        deleteButton.isHidden = true
-        placeHolderLabel.isHidden = false
+    //MARK: - viewDidLoad
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .customWhite
+        setupNavigationBar()
+        setupConstraints()
     }
     
+    //MARK: - UI Configuration
+    
+    private func setupConstraints() {
+        view.addSubview(navigationBar)
+        view.addSubview(doneButton)
+        view.addSubview(textFieldView)
+        
+        NSLayoutConstraint.activate([
+            navigationBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            navigationBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            navigationBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            textFieldView.topAnchor.constraint(equalTo: navigationBar.bottomAnchor, constant: 24),
+            textFieldView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            textFieldView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            textFieldView.heightAnchor.constraint(equalToConstant: 75),
+            doneButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            doneButton.heightAnchor.constraint(equalToConstant: 60)
+        ])
+    }
+    
+    private func setupNavigationBar() {
+        navigationBar.translatesAutoresizingMaskIntoConstraints = false
+        let title = UINavigationItem(title: "Новая категория")
+        navigationBar.setItems([title], animated: false)
+        navigationBar.titleTextAttributes = [
+            .font: UIFont.systemFont(ofSize: 16, weight: .medium),
+            .foregroundColor: UIColor.customBlack
+        ]
+        navigationBar.barTintColor = .customWhite
+        navigationBar.isTranslucent = false
+        navigationBar.shadowImage = UIImage()
+    }
+    
+    
+    //MARK: - Actions
+    
+    @objc private func clearTextView() {
+        viewModel.clearCategoryTitle()
+        textView.text = ""
+    }
+    
+    
     @objc private func addNewCategory() {
-        delegate?.addNewCategory(with: categoryTitle)
+        updateCategories?(categoryTitle)
         self.dismiss(animated: true)
     }
 }
 
+
+//MARK: - UITextViewDelegate
+
 extension NewCategoryViewController: UITextViewDelegate {
     func textViewDidChange(_ textView: UITextView) {
-        let state = textView.text.isEmpty
-        deleteButton.isHidden = state
-        placeHolderLabel.isHidden = !state
-        
-        if state {
-            categoryTitle = ""
-            doneButton.backgroundColor = .customGray
-            doneButton.isEnabled = false
-            return
-        }
-        categoryTitle = textView.text
-        doneButton.backgroundColor = .customBlack
-        doneButton.isEnabled = true
+        viewModel.updateCategoryTitle(textView.text)
     }
 }

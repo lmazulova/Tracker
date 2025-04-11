@@ -14,10 +14,13 @@ final class TrackerCreationViewController: UIViewController {
     var identifier: ControllersIdentifier
     
     // MARK: - Private Properties
-    private lazy var categoryViewController = {
+    private lazy var categoryViewController: CategoryViewController = {
         let controller = CategoryViewController()
+        
         return controller
     }()
+    
+    private lazy var scheduleViewController = ScheduleViewController()
     
     private var scheduleSelected: Bool = false
     private var trackerTitleFilled: Bool = false
@@ -211,7 +214,6 @@ final class TrackerCreationViewController: UIViewController {
         collectionView.delegate = self
         collectionView.dataSource = self
         textView.delegate = self
-//        categoryTitle = "Важное"
         setupNavigationBar()
         setupConstraints()
         setupActions()
@@ -403,7 +405,6 @@ extension TrackerCreationViewController: UITableViewDelegate {
             }
             present(categoryViewController, animated: true)
         case 1:
-            let scheduleViewController = ScheduleViewController()
             scheduleViewController.addSchedule = { [weak self] selectedWeekDays in
                 guard let self = self else { return }
                 setSchedule(for: selectedWeekDays)

@@ -14,14 +14,12 @@ final class CategoryCell: UITableViewCell {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    func setupCheckmark() {
-        self.accessoryType = .checkmark
-    }
+
     
     override func prepareForReuse() {
         super.prepareForReuse()
         self.accessoryType = .none
+        self.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
     }
     
     private let titleLabel: UILabel = {
@@ -42,7 +40,13 @@ final class CategoryCell: UITableViewCell {
         ])
     }
     
-    func setupCellTitle(_ title: String) {
-        titleLabel.text = title
+    func setup(with model: CategoryCellViewModel) {
+        titleLabel.text = model.title
+        if model.isSelected {
+            self.accessoryType = .checkmark
+        }
+        else {
+            self.accessoryType = .none
+        }
     }
 }

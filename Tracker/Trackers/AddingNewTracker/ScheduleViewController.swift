@@ -6,7 +6,7 @@ final class ScheduleViewController: UIViewController {
     // UI Elements
     private let navigationBar = UINavigationBar()
     var selectedWeekDays: Set<WeekDay> = []
-    var addSchedule: ((Set<WeekDay>) -> Void)?
+    var addSchedule: Binding<Set<WeekDay>>?
     
     private let tableView: UITableView = {
         let tableView = UITableView()
