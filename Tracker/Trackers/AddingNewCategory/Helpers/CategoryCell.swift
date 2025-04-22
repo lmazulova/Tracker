@@ -40,7 +40,7 @@ final class CategoryCell: UITableViewCell {
         ])
     }
     
-    func setup(with model: CategoryCellViewModel) {
+    func setup(with model: CategoryViewModel) {
         titleLabel.text = model.title
         if model.isSelected {
             self.accessoryType = .checkmark

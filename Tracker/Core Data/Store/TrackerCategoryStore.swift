@@ -3,7 +3,7 @@ import CoreData
 
 protocol CategoryDataProviderProtocol: AnyObject {
     var numberOfRows: Int { get }
-    func object(at indexPath: IndexPath) throws -> TrackerCategory
+    func object(at index: Index) throws -> TrackerCategory
     
     func addRecord(with title: String) throws
 }
@@ -100,14 +100,14 @@ extension TrackerCategoryStore: CategoryDataProviderProtocol {
     }
     
     
-    func object(at indexPath: IndexPath) throws -> TrackerCategory {
+    func object(at index: Index) throws -> TrackerCategory {
         
-        guard let numberOfRows = fetchedResultController.fetchedObjects?.count,
-              indexPath.row < numberOfRows else {
-            throw CoreDataErrors.rowOutOfRange(index: indexPath.row)
+        guard let numberOfCategories = fetchedResultController.fetchedObjects?.count,
+              index < numberOfCategories else {
+            throw CoreDataErrors.rowOutOfRange(index: index)
         }
         
-        let categoryData = fetchedResultController.object(at: indexPath)
+        let categoryData = fetchedResultController.object(at: IndexPath(row: index, section: 0))
         
         guard let title = categoryData.categoryTitle else {
             throw CoreDataErrors.categoryConversionError

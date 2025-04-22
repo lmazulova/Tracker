@@ -209,6 +209,14 @@ final class TrackerCreationViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .customWhite
+        //  скрытие клавиатуры
+        let tapGesture = UITapGestureRecognizer(
+            target: self,
+            action: #selector(hideKeyboard)
+        )
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
+        
         tableView.delegate = self
         tableView.dataSource = self
         collectionView.delegate = self
@@ -219,10 +227,6 @@ final class TrackerCreationViewController: UIViewController {
         setupActions()
     }
     
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesBegan(touches, with: event)
-        self.textFieldView.endEditing(true)
-    }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -386,6 +390,10 @@ final class TrackerCreationViewController: UIViewController {
         placeHolderLabel.isHidden = false
         trackerTitleFilled = false
         checkingButtonActivation()
+    }
+    
+    @objc private func hideKeyboard() {
+        self.view.endEditing(true)
     }
 }
 

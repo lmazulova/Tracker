@@ -1,23 +1,24 @@
 import Foundation
 
+typealias Index = Int
 typealias Binding<T> = (T) -> Void
 
 protocol CategoryViewModelProtocol: AnyObject {
-    func numberOfRows() -> Int
+    func numberOfCategories() -> Int
     func addRecord(with title: String)
-    func cellViewModel(at indexPath: IndexPath) -> CategoryCellViewModel
-    func selectCategory(at indexPath: IndexPath)
+    func category(at index: Index) -> CategoryViewModel
+    func selectCategory(at index: Index)
     
     var selectedCategoryTitle: String? { get }
     var visibleDataChanged: Binding<TrackerStoreUpdate>? { get set }
 }
 
-final class CategoryViewModel: CategoryViewModelProtocol {
+final class CategoryListViewModel: CategoryViewModelProtocol {
     
     var visibleDataChanged: Binding<TrackerStoreUpdate>?
     
     var selectedCategoryTitle: String? {
-        guard let selectedIndexPath = selectedIndexPath else { return nil }
+        guard let selectedIndexPath = selectedIndex else { return nil }
         return title(at: selectedIndexPath)
     }
     
@@ -27,10 +28,10 @@ final class CategoryViewModel: CategoryViewModelProtocol {
         return store
     }()
     
-    private var selectedIndexPath: IndexPath?
+    private var selectedIndex: Index?
     
-    func selectCategory(at indexPath: IndexPath) {
-        selectedIndexPath = indexPath
+    func selectCategory(at index: Index) {
+        selectedIndex = index
     }
     
     func addRecord(with title: String) {
@@ -42,9 +43,9 @@ final class CategoryViewModel: CategoryViewModelProtocol {
         }
     }
     
-    func title(at indexPath: IndexPath) -> String {
+    func title(at index: Index) -> String {
         do {
-            let trackerCategory = try categoryDataProvider.object(at: indexPath)
+            let trackerCategory = try categoryDataProvider.object(at: index)
             return trackerCategory.categoryTitle
         }
         catch CoreDataErrors.sectionOutOfRange(let index) {
@@ -60,24 +61,24 @@ final class CategoryViewModel: CategoryViewModelProtocol {
         return ""
     }
     
-    func isSelected(at indexPath: IndexPath) -> Bool {
-        return selectedIndexPath == indexPath
+    func isSelected(at index: Index) -> Bool {
+        return selectedIndex == index
     }
     
-    func cellViewModel(at indexPath: IndexPath) -> CategoryCellViewModel {
-        let title = title(at: indexPath)
-        let isSelected = isSelected(at: indexPath)
-        let categoryCellViewModel = CategoryCellViewModel(title: title, isSelected: isSelected)
+    func category(at index: Index) -> CategoryViewModel {
+        let title = title(at: index)
+        let isSelected = isSelected(at: index)
+        let categoryCellViewModel = CategoryViewModel(title: title, isSelected: isSelected)
         
         return categoryCellViewModel
     }
     
-    func numberOfRows() -> Int {
+    func numberOfCategories() -> Int {
         categoryDataProvider.numberOfRows
     }
 }
 
-extension CategoryViewModel: TrackerCategoryStoreDelegate {
+extension CategoryListViewModel: TrackerCategoryStoreDelegate {
     
     func didUpdate(_ update: TrackerStoreUpdate) {
         guard let visibleDataChanged = visibleDataChanged else {

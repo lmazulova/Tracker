@@ -1,6 +1,6 @@
 import Foundation
 
-struct CategoryCellViewModel {
+struct CategoryViewModel {
     let title: String
     let isSelected: Bool
 }

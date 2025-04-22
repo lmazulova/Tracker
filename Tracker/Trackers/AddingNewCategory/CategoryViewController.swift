@@ -5,7 +5,7 @@ final class CategoryViewController: UIViewController {
     private var viewModel: CategoryViewModelProtocol
     
     //MARK: - Init
-    init(viewModel: CategoryViewModelProtocol = CategoryViewModel()) {
+    init(viewModel: CategoryViewModelProtocol = CategoryListViewModel()) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
         self.bind()
@@ -167,7 +167,7 @@ final class CategoryViewController: UIViewController {
     }
     
     private func updateUI() {
-        let numberOfRows = viewModel.numberOfRows()
+        let numberOfRows = viewModel.numberOfCategories()
         let state = numberOfRows > 0
         
         stubContainer.isHidden = state
@@ -199,8 +199,8 @@ extension CategoryViewController: UITableViewDelegate {
         guard let cell = tableView.cellForRow(at: indexPath) as? CategoryCell else {
             return
         }
-        viewModel.selectCategory(at: indexPath)
-        cell.setup(with: viewModel.cellViewModel(at: indexPath))
+        viewModel.selectCategory(at: indexPath.row)
+        cell.setup(with: viewModel.category(at: indexPath.row))
         setupCategoryTitle?(viewModel.selectedCategoryTitle ?? "")
         self.dismiss(animated: true)
     }
@@ -217,7 +217,7 @@ extension CategoryViewController: UITableViewDelegate {
 
 extension CategoryViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        viewModel.numberOfRows()
+        viewModel.numberOfCategories()
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -226,7 +226,7 @@ extension CategoryViewController: UITableViewDataSource {
             return UITableViewCell()
         }
         
-        let cellViewModel = viewModel.cellViewModel(at: indexPath)
+        let cellViewModel = viewModel.category(at: indexPath.row)
         cell.setup(with: cellViewModel)
         
         if indexPath.row == tableView.numberOfRows(inSection: indexPath.section) - 1 {
