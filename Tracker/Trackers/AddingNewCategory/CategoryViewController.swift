@@ -4,6 +4,7 @@ final class CategoryViewController: UIViewController {
     //MARK: - ViewModel
     private var viewModel: CategoryViewModelProtocol
     
+    //MARK: - Init
     init(viewModel: CategoryViewModelProtocol = CategoryViewModel()) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
@@ -93,6 +94,12 @@ final class CategoryViewController: UIViewController {
         return button
     }()
     
+    //MARK: - Public Methods
+    
+    func addNewCategory(with title: String) {
+        viewModel.addRecord(with: title)
+    }
+    
     //MARK: - Bindings
     
     private func bind() {
@@ -105,16 +112,6 @@ final class CategoryViewController: UIViewController {
     }
     
     var setupCategoryTitle: Binding<String>?
-    
-    //MARK: - Public Methods
-    
-    func addNewCategory(with title: String) {
-        viewModel.addRecord(with: title)
-    }
-    
-    func lastSelectedTitle(_ title: String) {
-        categoryTitle = title
-    }
     
     //MARK: - Lifecycle Methods
     override func viewDidLoad() {
@@ -155,6 +152,7 @@ final class CategoryViewController: UIViewController {
         tableViewHeightConstraint = tableView.heightAnchor.constraint(equalToConstant: 0)
         tableViewHeightConstraint?.isActive = true
     }
+   
     private func setupNavigationBar() {
         navigationBar.translatesAutoresizingMaskIntoConstraints = false
         let title = UINavigationItem(title: "Категория")

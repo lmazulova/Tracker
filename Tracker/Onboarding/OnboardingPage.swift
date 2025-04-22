@@ -1,14 +1,10 @@
 import UIKit
 
-enum OnboardingPageState: String {
-    case firstScreen = "Отслеживайте только то, что хотите"
-    case secondScreen = "Даже если это не литры воды и йога"
-}
-
 final class OnboardingPage: UIViewController {
     
-    init(state: OnboardingPageState = .firstScreen) {
-        self.state = state
+    init(screenText: String, backgroundImage: UIImage) {
+        self.screenText = screenText
+        self.backgroundImage = backgroundImage
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -16,12 +12,11 @@ final class OnboardingPage: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    var state: OnboardingPageState
+    private let screenText: String
+    private let backgroundImage: UIImage
     
-    lazy var backgroundImage: UIImageView = {
-        let imageName = state == .firstScreen ? "backgroundFirst" : "backgroundSecond"
-        let image = UIImage(named: imageName) ?? UIImage()
-        let imageView = UIImageView(image: image)
+    lazy var backgroundImageView: UIImageView = {
+        let imageView = UIImageView(image: backgroundImage)
         imageView.contentMode = .scaleAspectFill
         imageView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -45,7 +40,7 @@ final class OnboardingPage: UIViewController {
         label.numberOfLines = 0
         label.lineBreakMode = .byWordWrapping
         label.textAlignment = .center
-        label.text = state.rawValue
+        label.text = screenText
         label.textColor = .black
         label.font = UIFont.systemFont(ofSize: 32, weight: .bold)
         
@@ -59,14 +54,14 @@ final class OnboardingPage: UIViewController {
     }
     
     private func setupConstraints() {
-        view.addSubview(backgroundImage)
+        view.addSubview(backgroundImageView)
         view.addSubview(okButton)
         view.addSubview(label)
         NSLayoutConstraint.activate([
-            backgroundImage.topAnchor.constraint(equalTo: view.topAnchor),
-            backgroundImage.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            backgroundImage.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            backgroundImage.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            backgroundImageView.topAnchor.constraint(equalTo: view.topAnchor),
+            backgroundImageView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            backgroundImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            backgroundImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             label.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             label.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             label.bottomAnchor.constraint(equalTo: okButton.topAnchor, constant: -160),

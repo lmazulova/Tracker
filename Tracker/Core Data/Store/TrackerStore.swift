@@ -1,7 +1,7 @@
 import CoreData
 import UIKit
 
-protocol TrackerDataProviderProtocol {
+protocol TrackerDataProviderProtocol: AnyObject {
     var numberOfSections: Int { get }
     func numberOfRowsInSection(_ section: Int) -> Int
     func object(at indexPath: IndexPath) throws -> Tracker

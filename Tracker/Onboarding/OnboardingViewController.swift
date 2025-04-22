@@ -16,7 +16,16 @@ final class OnboardingViewController: UIPageViewController {
     }()
     
     lazy var pages: [UIViewController] = {
-        return [OnboardingPage(state: .firstScreen), OnboardingPage(state: .secondScreen)]
+        return [
+            OnboardingPage(
+                screenText: "Отслеживайте только то, что хотите",
+                backgroundImage: UIImage(named: "backgroundFirst") ?? UIImage()
+            ),
+            OnboardingPage(
+                screenText: "Даже если это не литры воды и йога",
+                backgroundImage: UIImage(named: "backgroundSecond") ?? UIImage()
+            )
+        ]
     }()
     
     init() {

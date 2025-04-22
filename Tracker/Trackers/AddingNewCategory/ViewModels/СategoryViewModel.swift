@@ -2,7 +2,7 @@ import Foundation
 
 typealias Binding<T> = (T) -> Void
 
-protocol CategoryViewModelProtocol {
+protocol CategoryViewModelProtocol: AnyObject {
     func numberOfRows() -> Int
     func addRecord(with title: String)
     func cellViewModel(at indexPath: IndexPath) -> CategoryCellViewModel
@@ -14,6 +14,13 @@ protocol CategoryViewModelProtocol {
 
 final class CategoryViewModel: CategoryViewModelProtocol {
     
+    var visibleDataChanged: Binding<TrackerStoreUpdate>?
+    
+    var selectedCategoryTitle: String? {
+        guard let selectedIndexPath = selectedIndexPath else { return nil }
+        return title(at: selectedIndexPath)
+    }
+    
     private lazy var categoryDataProvider: CategoryDataProviderProtocol = {
         let store = TrackerCategoryStore.shared
         store.delegate = self
@@ -21,13 +28,6 @@ final class CategoryViewModel: CategoryViewModelProtocol {
     }()
     
     private var selectedIndexPath: IndexPath?
-    
-    var visibleDataChanged: Binding<TrackerStoreUpdate>?
-    
-    var selectedCategoryTitle: String? {
-        guard let selectedIndexPath = selectedIndexPath else { return nil }
-        return title(at: selectedIndexPath)
-    }
     
     func selectCategory(at indexPath: IndexPath) {
         selectedIndexPath = indexPath

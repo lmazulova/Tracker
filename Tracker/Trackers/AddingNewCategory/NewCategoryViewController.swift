@@ -130,11 +130,24 @@ final class NewCategoryViewController: UIViewController {
         return view
     }()
     
+    @objc
+    private func hideKeyboard() {
+        self.view.endEditing(true)
+    }
+    
     //MARK: - viewDidLoad
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .customWhite
+        //  скрытие клавиатуры
+        let tapGesture = UITapGestureRecognizer(
+            target: self,
+            action: #selector(hideKeyboard)
+        )
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
+        
         setupNavigationBar()
         setupConstraints()
     }

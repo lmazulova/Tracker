@@ -395,9 +395,6 @@ extension TrackerCreationViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         switch indexPath.row {
         case 0:
-            if let categoryTitle = categoryTitle {
-                categoryViewController.lastSelectedTitle(categoryTitle)
-            }
             categoryViewController.setupCategoryTitle = { [weak self] title in
                 guard let self = self else { return }
                 setupCategoryTitle(title)

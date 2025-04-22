@@ -1,7 +1,7 @@
 import UIKit
 import CoreData
 
-protocol CategoryDataProviderProtocol {
+protocol CategoryDataProviderProtocol: AnyObject {
     var numberOfRows: Int { get }
     func object(at indexPath: IndexPath) throws -> TrackerCategory
     
