@@ -8,7 +8,6 @@ final class TrackersViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.customWhite
-        trackerCategory.setupRecords()
         setupUI()
     }
     
@@ -26,18 +25,10 @@ final class TrackersViewController: UIViewController {
         cellSpacing: 9
     )
     
-    private lazy var trackerDataProvider: DataProviderProtocol = {
-        let trackerStore = TrackerStore()
+    private lazy var trackerDataProvider: TrackerDataProviderProtocol = {
+        let trackerStore = TrackerStore.shared
         trackerStore.delegate = self
         return trackerStore
-    }()
-    
-    private lazy var trackerRecord: TrackerRecordStore = {
-        return TrackerRecordStore()
-    }()
-    
-    private lazy var trackerCategory: TrackerCategoryStore = {
-        return TrackerCategoryStore()
     }()
     
     //UIElements
@@ -187,7 +178,7 @@ final class TrackersViewController: UIViewController {
             searchStubStackView.centerYAnchor.constraint(equalTo: stubStackView.centerYAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
+            collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 24),
             collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
         trackerDataProvider.filterByDate(currentDate)
@@ -291,12 +282,12 @@ extension TrackersViewController: UICollectionViewDataSource {
             let tracker = try trackerDataProvider.object(at: indexPath)
             let trackerIsCompleted: Bool
             if currentDate <= Calendar.current.startOfDay(for: Date()) {
-                trackerIsCompleted = trackerRecord.trackerIsCompleted(TrackerRecord(id: tracker.id, date: currentDate))
+                trackerIsCompleted = TrackerRecordStore.shared.trackerIsCompleted(TrackerRecord(id: tracker.id, date: currentDate))
             }
             else {
                 trackerIsCompleted = false
             }
-            cell.configureCell(for: tracker, with: trackerIsCompleted, counterValue: trackerRecord.amountOfRecords(for: tracker.id), currentDate: currentDate)
+            cell.configureCell(for: tracker, with: trackerIsCompleted, counterValue: TrackerRecordStore.shared.amountOfRecords(for: tracker.id), currentDate: currentDate)
             
             cell.delegate = self
             
@@ -332,7 +323,7 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        return UIEdgeInsets(top: 12, left: params.leftInset, bottom: 0, right: params.rightInset)
+        return UIEdgeInsets(top: 16, left: params.leftInset, bottom: 12, right: params.rightInset)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
@@ -344,7 +335,7 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        return CGSize(width: collectionView.frame.width, height: 18)
+        return CGSize(width: collectionView.frame.width, height: 19)
     }
 }
 
@@ -370,7 +361,7 @@ extension TrackersViewController: TrackerCellDelegate {
         let newRecord = TrackerRecord(id: id, date: currentDate)
         
         do {
-            try trackerRecord.changeState(for: newRecord)
+            try TrackerRecordStore.shared.changeState(for: newRecord)
         }
         catch {
             print("[\(#function)] - Ошибка записи: \(error.localizedDescription)")

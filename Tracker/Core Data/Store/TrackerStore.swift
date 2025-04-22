@@ -1,16 +1,7 @@
 import CoreData
 import UIKit
 
-// MARK: - TrackerStoreUpdate
-
-struct TrackerStoreUpdate {
-    let insertedIndexes: Set<IndexPath>
-    let deletedIndexes: Set<IndexPath>
-}
-
-// MARK: - Protocols
-
-protocol DataProviderProtocol {
+protocol TrackerDataProviderProtocol: AnyObject {
     var numberOfSections: Int { get }
     func numberOfRowsInSection(_ section: Int) -> Int
     func object(at indexPath: IndexPath) throws -> Tracker
@@ -27,14 +18,16 @@ protocol DataProviderDelegate: AnyObject {
     func insertSections(_ indexSet: IndexSet)
 }
 
-// MARK: - BaseStore
-
-class BaseStore: NSObject {
+final class TrackerStore: NSObject {
+    
+    static let shared = TrackerStore()
+    
     let context: NSManagedObjectContext
     
     init(context: NSManagedObjectContext) {
         self.context = context
         super.init()
+        filterByDate(Calendar.current.startOfDay(for: Date()))
     }
 
     convenience override init() {
@@ -57,12 +50,6 @@ class BaseStore: NSObject {
             throw CoreDataErrors.nilResult
         }()
     }
-    
-}
-
-// MARK: - TrackerStore
-
-final class TrackerStore: BaseStore {
     
     // MARK: - Private Properties
 
@@ -91,11 +78,6 @@ final class TrackerStore: BaseStore {
     }()
     
     // MARK: - Init
-
-    override init(context: NSManagedObjectContext) {
-            super.init(context: context)
-            filterByDate(Calendar.current.startOfDay(for: Date()))
-        }
     
     // MARK: - Private Methods
     
@@ -155,7 +137,7 @@ final class TrackerStore: BaseStore {
 
 // MARK: - DataProviderProtocol
 
-extension TrackerStore: DataProviderProtocol {
+extension TrackerStore: TrackerDataProviderProtocol {
     var numberOfSections: Int {
         fetchedResultController.sections?.count ?? 0
     }
@@ -305,124 +287,6 @@ extension TrackerStore: NSFetchedResultsControllerDelegate {
             delegate?.insertSections(IndexSet(integer: sectionIndex))
         default:
             break
-        }
-    }
-}
-
-// MARK: - TrackerCategoryStore
-
-final class TrackerCategoryStore: BaseStore {
-    
-    
-    // MARK: - Init
-    
-    override init(context: NSManagedObjectContext) {
-        super.init(context: context)
-    }
-    
-    // MARK: - Private Methods
-    
-    private func cleanUpReferencesToPersistentStores() {
-        context.performAndWait{
-            guard let coordinator = self.context.persistentStoreCoordinator else { return }
-            try? coordinator.persistentStores.forEach(coordinator.remove)
-        }
-    }
-    
-    // MARK: - Public Methods
-    
-    func setupRecords() {
-        let checkRequest = TrackerCategoryCoreData.fetchRequest()
-        guard let result = try? context.fetch(checkRequest),
-           result.isEmpty
-        else {
-            return
-        }
-        let newCategory = TrackerCategoryCoreData(context: context)
-        newCategory.categoryTitle = "Важное"
-        
-        try? context.save()
-    }
-    
-    // MARK: - Deinitialization
-    
-    deinit {
-        cleanUpReferencesToPersistentStores()
-    }
-}
-
-// MARK: - TrackerRecordStore
-
-final class TrackerRecordStore: BaseStore {
-    
-    // MARK: - Init
-    
-    override init(context: NSManagedObjectContext) {
-        super.init(context: context)
-    }
-    
-    // MARK: - Public Methods
-    
-    func changeState(for record: TrackerRecord) throws {
-        try performSync { context in
-            Result {
-                let trackerRecordFetch = TrackerRecordCoreData.fetchRequest()
-                trackerRecordFetch.predicate = NSPredicate(format: "id == %@ AND date == %@", record.id as NSUUID, record.date as NSDate)
-                
-                let results = try context.fetch(trackerRecordFetch)
-                if results.isEmpty {
-                    let trackerRecord = TrackerRecordCoreData(context: context)
-                    trackerRecord.id = record.id
-                    trackerRecord.date = record.date
-                }
-                else {
-                    results.forEach { result in
-                        context.delete(result)
-                    }
-                }
-                try context.save()
-            }
-        }
-    }
-    
-    func trackerIsCompleted(_ record: TrackerRecord) -> Bool {
-        do {
-            return try performSync { context in
-                Result {
-                    let trackerRecordFetch = TrackerRecordCoreData.fetchRequest()
-                    trackerRecordFetch.predicate = NSPredicate(format: "id == %@ AND date == %@", record.id as NSUUID, record.date as NSDate)
-                    let result = try context.fetch(trackerRecordFetch)
-                    
-                    if result.isEmpty {
-                        return false
-                    }
-                    else {
-                        return true
-                    }
-                }
-            }
-        }
-        
-        catch {
-            return false
-        }
-    }
-    func amountOfRecords(for id: UUID) -> Int {
-        do {
-            return try performSync { context in
-                Result {
-                    let trackerRecordFetch = TrackerRecordCoreData.fetchRequest()
-                    trackerRecordFetch.resultType = .countResultType
-                    
-                    trackerRecordFetch.predicate = NSPredicate(format: "id == %@", id as NSUUID)
-                    let result = try context.count(for: trackerRecordFetch)
-                    return result
-                }
-            }
-        }
-        catch {
-            print("Ошибка при подсчете записей: \(error.localizedDescription)")
-            return 0
         }
     }
 }
