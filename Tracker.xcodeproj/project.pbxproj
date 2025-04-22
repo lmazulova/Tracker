@@ -19,7 +19,7 @@
 		CE69342A2DA69D1800DC7108 /* TrackerRecordStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6934292DA69D1800DC7108 /* TrackerRecordStore.swift */; };
 		CE69342C2DA6A36D00DC7108 /* CategoryCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE69342B2DA6A36D00DC7108 /* CategoryCell.swift */; };
 		CE69342E2DA6CDB800DC7108 /* NewCategoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE69342D2DA6CDB800DC7108 /* NewCategoryViewController.swift */; };
-		CE6934302DA8493900DC7108 /* СategoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE69342F2DA8493900DC7108 /* СategoryViewModel.swift */; };
+		CE6934302DA8493900DC7108 /* СategoryListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE69342F2DA8493900DC7108 /* СategoryListViewModel.swift */; };
 		CE6934342DA9925C00DC7108 /* CategoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6934332DA9925C00DC7108 /* CategoryViewModel.swift */; };
 		CE6934362DA9B44E00DC7108 /* NewCategoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6934352DA9B44E00DC7108 /* NewCategoryViewModel.swift */; };
 		CEB00B2B2DA54FC800F703C6 /* OnboardingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB00B2A2DA54FC800F703C6 /* OnboardingViewController.swift */; };
@@ -57,7 +57,7 @@
 		CE6934292DA69D1800DC7108 /* TrackerRecordStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerRecordStore.swift; sourceTree = "<group>"; };
 		CE69342B2DA6A36D00DC7108 /* CategoryCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryCell.swift; sourceTree = "<group>"; };
 		CE69342D2DA6CDB800DC7108 /* NewCategoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewCategoryViewController.swift; sourceTree = "<group>"; };
-		CE69342F2DA8493900DC7108 /* СategoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "СategoryViewModel.swift"; sourceTree = "<group>"; };
+		CE69342F2DA8493900DC7108 /* СategoryListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "СategoryListViewModel.swift"; sourceTree = "<group>"; };
 		CE6934332DA9925C00DC7108 /* CategoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryViewModel.swift; sourceTree = "<group>"; };
 		CE6934352DA9B44E00DC7108 /* NewCategoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewCategoryViewModel.swift; sourceTree = "<group>"; };
 		CEB00B2A2DA54FC800F703C6 /* OnboardingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewController.swift; sourceTree = "<group>"; };
@@ -161,7 +161,7 @@
 		CE6934322DA9524B00DC7108 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
-				CE69342F2DA8493900DC7108 /* СategoryViewModel.swift */,
+				CE69342F2DA8493900DC7108 /* СategoryListViewModel.swift */,
 				CE6934332DA9925C00DC7108 /* CategoryViewModel.swift */,
 				CE6934352DA9B44E00DC7108 /* NewCategoryViewModel.swift */,
 			);
@@ -362,7 +362,7 @@
 				CEB00B2B2DA54FC800F703C6 /* OnboardingViewController.swift in Sources */,
 				CE319AF92D8B3E14008E441C /* TrackerModels.xcdatamodeld in Sources */,
 				CEFB2DFC2D689649002CF95C /* SceneDelegate.swift in Sources */,
-				CE6934302DA8493900DC7108 /* СategoryViewModel.swift in Sources */,
+				CE6934302DA8493900DC7108 /* СategoryListViewModel.swift in Sources */,
 				CE3EF96C2D9ACCF700E1890D /* CDErrors&StoreUpdate.swift in Sources */,
 				CEFB2E7F2D70AD8F002CF95C /* Tracker&Schedule.swift in Sources */,
 				CEB00B2D2DA5501400F703C6 /* OnboardingPage.swift in Sources */,
