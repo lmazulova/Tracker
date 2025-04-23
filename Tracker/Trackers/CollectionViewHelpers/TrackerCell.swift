@@ -4,7 +4,7 @@ final class TrackerCell: UICollectionViewCell {
     static let identifier = "trackerCell"
     var trackerID: UUID?
     var daysAmount: Int = 0
-    
+    private var isPinned = false
     weak var delegate: TrackerCellDelegate?
     
     // MARK: - Initialization
@@ -18,7 +18,13 @@ final class TrackerCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    
+    // MARK: - Interaction
+    
+    private lazy var interaction = UIContextMenuInteraction(delegate: self)
+    
     // MARK: - Private Properties
+    
     private let card: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 16
@@ -83,6 +89,14 @@ final class TrackerCell: UICollectionViewCell {
         return button
     }()
     
+    private lazy var pinView: UIImageView = {
+        let image = UIImage(named: "pin")
+        let imageView = UIImageView(image: image)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.isHidden = !isPinned
+        return imageView
+    }()
+    
     // MARK: - Private Methods
     private func updateDayCounterLabel() {
         if plusButton.isSelected {
@@ -120,12 +134,17 @@ final class TrackerCell: UICollectionViewCell {
         card.addSubview(cardText)
         card.addSubview(emojiView)
         card.addSubview(emojiLabel)
+        card.addSubview(pinView)
         
         NSLayoutConstraint.activate([
             card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             card.topAnchor.constraint(equalTo: contentView.topAnchor),
             card.heightAnchor.constraint(equalTo: contentView.heightAnchor, multiplier: 0.61),
+            pinView.topAnchor.constraint(equalTo: card.topAnchor, constant: 18),
+            pinView.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
+            pinView.heightAnchor.constraint(equalToConstant: 12),
+            pinView.widthAnchor.constraint(equalToConstant: 8),
             cardText.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
             cardText.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
             cardText.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12),
@@ -159,6 +178,10 @@ final class TrackerCell: UICollectionViewCell {
         plusButton.isEnabled = (currentDate <= Calendar.current.startOfDay(for: Date()))
         plusButton.backgroundColor = plusButtonState ? tracker.color.withAlphaComponent(0.3) : tracker.color
         dayCounterLabel.text = daysString()
+        isPinned = tracker.isPinned
+        pinView.isHidden = !isPinned
+        //Interaction
+        card.addInteraction(interaction)
     }
     
     // MARK: - Actions
@@ -168,5 +191,56 @@ final class TrackerCell: UICollectionViewCell {
         guard let id = trackerID else { return }
         delegate?.updateCompletedTrackers(for: id)
         updateDayCounterLabel()
+    }
+    
+    var pinHandle: Binding<UUID>?
+//    var editHandle: Binding<()>?
+    var deleteHandle: Binding<UUID>?
+    
+    private func pinTracker(with id: UUID) {
+        self.pinHandle?(id)
+        pinView.isHidden.toggle()
+        isPinned.toggle()
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        interactions
+            .filter { $0 is UIContextMenuInteraction }
+            .forEach{ self.removeInteraction($0) }
+        deleteHandle = nil
+    }
+}
+
+extension TrackerCell: UIContextMenuInteractionDelegate {
+    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+        let configuration = UIContextMenuConfiguration(
+            identifier: nil,
+            previewProvider: nil,
+            actionProvider: { _ in
+                let pinAction = UIAction(title: self.isPinned == true ? "Открепить" : "Закрепить") { [weak self] _ in
+                    guard let self = self,
+                          let id = trackerID else {
+                        print("[\(#function)] - трекер для закрепления не найден")
+                        return
+                    }
+                    self.pinTracker(with: id)
+                }
+                let editAction = UIAction(title: "Редактировать") { [weak self] _ in
+//                    self?.editHandle()
+                }
+                let deleteAction = UIAction(title: "Удалить", attributes: [.destructive]) { [weak self] _ in
+                    guard let self = self,
+                          let id = trackerID
+                    else {
+                        print("[\(#function)] - трекер для удаления не найден")
+                        return
+                    }
+                    self.deleteHandle?(id)
+                }
+                return UIMenu(children: [pinAction, editAction, deleteAction])
+            }
+        )
+        return configuration
     }
 }

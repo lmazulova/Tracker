@@ -5,7 +5,7 @@ typealias Binding<T> = (T) -> Void
 
 protocol CategoryViewModelProtocol: AnyObject {
     func numberOfCategories() -> Int
-    func addRecord(with title: String)
+    func addRecord(category: TrackerCategory)
     func category(at index: Index) -> CategoryViewModel
     func selectCategory(at index: Index)
     
@@ -34,9 +34,9 @@ final class CategoryListViewModel: CategoryViewModelProtocol {
         selectedIndex = index
     }
     
-    func addRecord(with title: String) {
+    func addRecord(category: TrackerCategory) {
         do {
-            try categoryDataProvider.addRecord(with: title)
+            try categoryDataProvider.addRecord(category: category)
         }
         catch {
             print("[\(#function)] - Ошибка добавления новой записи.")

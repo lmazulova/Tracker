@@ -96,8 +96,8 @@ final class CategoryViewController: UIViewController {
     
     //MARK: - Public Methods
     
-    func addNewCategory(with title: String) {
-        viewModel.addRecord(with: title)
+    func addNewCategory(_ category: TrackerCategory) {
+        viewModel.addRecord(category: category)
     }
     
     //MARK: - Bindings
@@ -185,7 +185,8 @@ final class CategoryViewController: UIViewController {
         // newCategoryController высвобождается из памяти при каждом вызове dismiss внутри себя, поэтому уместно каждый раз создавать его заново
         let newCategoryController = NewCategoryViewController()
         newCategoryController.updateCategories = { [weak self] title in
-            self?.addNewCategory(with: title)
+            let category = TrackerCategory(categoryTitle: title, id: UUID())
+            self?.addNewCategory(category)
         }
         present(newCategoryController, animated: true)
     }

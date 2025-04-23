@@ -5,7 +5,7 @@ protocol CategoryDataProviderProtocol: AnyObject {
     var numberOfRows: Int { get }
     func object(at index: Index) throws -> TrackerCategory
     
-    func addRecord(with title: String) throws
+    func addRecord(category: TrackerCategory) throws
 }
 
 protocol TrackerCategoryStoreDelegate: AnyObject {
@@ -15,11 +15,15 @@ protocol TrackerCategoryStoreDelegate: AnyObject {
 final class TrackerCategoryStore: NSObject {
     
     static let shared = TrackerCategoryStore()
-    
+
     let context: NSManagedObjectContext
+    
+    // MARK: - Init
     
     init(context: NSManagedObjectContext) {
         self.context = context
+        super.init()
+        self.createPinCategoryIfNeeded()
     }
 
     convenience override init() {
@@ -47,8 +51,6 @@ final class TrackerCategoryStore: NSObject {
     
     private var insertedIndexes: Set<IndexPath> = []
     private var deletedIndexes: Set<IndexPath> = []
-    
-    // MARK: - Init
 
     
     // MARK: - Private Methods
@@ -59,8 +61,22 @@ final class TrackerCategoryStore: NSObject {
             try? coordinator.persistentStores.forEach(coordinator.remove)
         }
     }
-
     
+    private func createPinCategoryIfNeeded() {
+        let fetchRequest = TrackerCategoryCoreData.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id == %@", PinnedCategory.id as NSUUID)
+        
+        if let result = try? context.fetch(fetchRequest), result.isEmpty {
+            let pinCategory = TrackerCategory(categoryTitle: PinnedCategory.title, id: PinnedCategory.id)
+            do {
+                try addRecord(category: pinCategory)
+            }
+            catch {
+                print("[\(#function)] - Ошибка добавления категории: \(error.localizedDescription)")
+            }
+        }
+    }
+
     // MARK: - Deinitialization
     
     deinit {
@@ -71,6 +87,7 @@ final class TrackerCategoryStore: NSObject {
         
         let fetchRequest = TrackerCategoryCoreData.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: true)]
+        fetchRequest.predicate = NSPredicate(format: "id != %@", PinnedCategory.id as NSUUID)
         
         let fetchResultController = NSFetchedResultsController(
             fetchRequest: fetchRequest,
@@ -87,12 +104,13 @@ final class TrackerCategoryStore: NSObject {
 }
 
 extension TrackerCategoryStore: CategoryDataProviderProtocol {
-    func addRecord(with title: String) throws {
+    func addRecord(category: TrackerCategory) throws {
         try performSync { context in
             Result {
                 let trackerCategoryCoreData = TrackerCategoryCoreData(context: context)
-                trackerCategoryCoreData.categoryTitle = title
+                trackerCategoryCoreData.categoryTitle = category.categoryTitle
                 trackerCategoryCoreData.createdAt = Date()
+                trackerCategoryCoreData.id = category.id
 
                 try context.save()
             }
@@ -109,11 +127,13 @@ extension TrackerCategoryStore: CategoryDataProviderProtocol {
         
         let categoryData = fetchedResultController.object(at: IndexPath(row: index, section: 0))
         
-        guard let title = categoryData.categoryTitle else {
+        guard let title = categoryData.categoryTitle,
+              let id = categoryData.id
+        else {
             throw CoreDataErrors.categoryConversionError
         }
         
-        let trackerCategory = TrackerCategory(categoryTitle: title)
+        let trackerCategory = TrackerCategory(categoryTitle: title, id: id)
           
         return trackerCategory
     }
@@ -133,8 +153,11 @@ extension TrackerCategoryStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<any NSFetchRequestResult>) {
         
         delegate?.didUpdate(TrackerStoreUpdate(
-            insertedIndexes: insertedIndexes,
-            deletedIndexes: deletedIndexes)
+                insertedSections: IndexSet(),
+                deletedSections: IndexSet(),
+                insertedIndexes: insertedIndexes,
+                deletedIndexes: deletedIndexes
+            )
         )
         
         insertedIndexes.removeAll()

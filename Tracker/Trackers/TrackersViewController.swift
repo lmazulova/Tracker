@@ -253,6 +253,24 @@ final class TrackersViewController: UIViewController {
         }
     }
     
+    // MARK: - Context Menu Actions
+    private func showDeleteAlert(for trackerId: UUID) {
+        let alert = UIAlertController(title: "", message: "Уверены что хотите удалить этот трекер?", preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "Удалить", style: .destructive, handler: { [weak self] _ in
+            self?.trackerDataProvider.deleteTracker(with: trackerId)
+        })
+        )
+        alert.addAction(UIAlertAction(title: "Отменить", style: .cancel))
+        self.present(alert, animated: true, completion: nil)
+    }
+//    private func pinHandle() {
+//        
+//    }
+//    
+//    private func editHandle() {
+//        
+//    }
+    
     // MARK: - Private Methods
     
     private func formattedDate(_ date: Date) -> String {
@@ -288,6 +306,15 @@ extension TrackersViewController: UICollectionViewDataSource {
                 trackerIsCompleted = false
             }
             cell.configureCell(for: tracker, with: trackerIsCompleted, counterValue: TrackerRecordStore.shared.amountOfRecords(for: tracker.id), currentDate: currentDate)
+            //Bindings
+            cell.deleteHandle = { [weak self] id in
+                guard let self = self else { return }
+                self.showDeleteAlert(for: id)
+            }
+            cell.pinHandle = { [weak self] id in
+                guard let self = self else { return }
+                trackerDataProvider.pinTracker(with: id)
+            }
             
             cell.delegate = self
             
@@ -402,22 +429,10 @@ extension TrackersViewController: DataProviderDelegate {
         }
     }
     
-    func deleteSections(_ indexSet: IndexSet) {
-        collectionView.performBatchUpdates {
-            collectionView.deleteSections(indexSet)
-        }
-        updateUI()
-    }
-    
-    func insertSections(_ indexSet: IndexSet) {
-        collectionView.performBatchUpdates {
-            collectionView.insertSections(indexSet)
-        }
-        updateUI()
-    }
-    
     func didUpdate(_ update: TrackerStoreUpdate) {
         collectionView.performBatchUpdates{
+            collectionView.insertSections(update.insertedSections)
+            collectionView.deleteSections(update.deletedSections)
             collectionView.insertItems(at: Array(update.insertedIndexes))
             collectionView.deleteItems(at: Array(update.deletedIndexes))
         }

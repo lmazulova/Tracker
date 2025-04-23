@@ -377,7 +377,8 @@ final class TrackerCreationViewController: UIViewController {
             color: TrackerAttributes.colors[selectedColorPath?.row ?? 0],
             emoji: TrackerAttributes.emojis[selectedEmojiPath?.row ?? 0],
             schedule: schedule, 
-            category: TrackerCategory(categoryTitle: categoryTitle ?? "")
+            category: TrackerCategory(categoryTitle: categoryTitle ?? "", id: UUID()),
+            isPinned: false
         )
         delegate?.addTracker(tracker)
         delegate?.cancelingTrackerCreation()
