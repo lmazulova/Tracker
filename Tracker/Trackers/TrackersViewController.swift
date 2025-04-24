@@ -7,7 +7,7 @@ final class TrackersViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor.customWhite
+        view.backgroundColor = .customWhite
         setupUI()
     }
     
@@ -17,6 +17,7 @@ final class TrackersViewController: UIViewController {
     var currentDate: Date = Calendar.current.startOfDay(for: Date())
     
     // MARK: - Private Properties
+    private var filterViewController: FilterViewController?
     
     private let params = GeometricParamsForCollectionView(
         cellCount: 2,
@@ -49,6 +50,7 @@ final class TrackersViewController: UIViewController {
         button.setTitle("Фильтры", for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         button.titleLabel?.textColor = .white
+        button.addTarget(self, action: #selector(filterButtonTappet), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         
         return button
@@ -93,6 +95,7 @@ final class TrackersViewController: UIViewController {
         let layout = UICollectionViewFlowLayout()
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.backgroundColor = .customWhite
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.register(TrackerCell.self, forCellWithReuseIdentifier: TrackerCell.identifier)
@@ -102,6 +105,7 @@ final class TrackersViewController: UIViewController {
     
     private let stubStackView: UIStackView = {
         let stubImageView = UIImageView(image: UIImage(named: "trackerStub"))
+        stubImageView.backgroundColor = .customWhite
         let stubLabel = UILabel()
         stubLabel.text = "Что будем отслеживать?"
         stubLabel.textColor = UIColor.customBlack
@@ -271,6 +275,20 @@ final class TrackersViewController: UIViewController {
             ])
             datePicker.isHidden = false
         }
+    }
+    
+    @objc private func filterButtonTappet() {
+        guard let filterViewController = filterViewController else {
+            filterViewController = FilterViewController()
+            if let filterViewController = filterViewController {
+                filterViewController.selectedDate = currentDate
+                filterViewController.delegate = TrackerStore.shared
+                present(filterViewController, animated: true)
+            }
+            return
+        }
+        filterViewController.selectedDate = currentDate
+        present(filterViewController, animated: true)
     }
     
     // MARK: - Context Menu Actions

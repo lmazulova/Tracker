@@ -1,11 +1,32 @@
 import UIKit
 
+enum FilterModes: String {
+    case all = "Все трекеры"
+    case today = "Трекеры на сегодня"
+    case completed = "Завершенные"
+    case notCompleted = "Не завершенные"
+}
+
+protocol FilterDelegate: AnyObject {
+    func filterTracker(with mode: FilterModes, date: Date)
+}
+
 final class FilterViewController: UIViewController {
+    private var selectedMode: FilterModes {
+        return filters.filter{ $0.isSelected }.first?.mode ?? .all
+    }
+    
+    var selectedDate: Date = Date()
+    
+    weak var delegate: FilterDelegate?
     
     private var filters: [FilterCellModel] = [
-        FilterCellModel(title: "Все трекеры", isSelected: <#T##Bool#>)
-        
+        FilterCellModel(mode: FilterModes.all, isSelected: false),
+        FilterCellModel(mode: FilterModes.today, isSelected: false),
+        FilterCellModel(mode: FilterModes.completed, isSelected: false),
+        FilterCellModel(mode: FilterModes.notCompleted, isSelected: false)
     ]
+    
     private lazy var tableView: UITableView = {
         let tableView = UITableView()
         tableView.backgroundColor = .customBackground
@@ -14,7 +35,7 @@ final class FilterViewController: UIViewController {
         tableView.rowHeight = 75
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-        tableView.register(CategoryCell.self, forCellReuseIdentifier: CategoryCell.identifier)
+        tableView.register(FilterCell.self, forCellReuseIdentifier: FilterCell.identifier)
         tableView.delegate = self
         tableView.dataSource = self
         tableView.allowsMultipleSelection = false
@@ -27,6 +48,7 @@ final class FilterViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .customWhite
         setupNavigationBar()
         setupConstraints()
     }
@@ -62,7 +84,22 @@ final class FilterViewController: UIViewController {
 }
 
 extension FilterViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard let cell = tableView.cellForRow(at: indexPath) as? FilterCell else {
+            return
+        }
+        filters[indexPath.row].isSelected = true
+        cell.setup(with: filters[indexPath.row])
+        delegate?.filterTracker(with: selectedMode, date: selectedDate)
+        self.dismiss(animated: true)
+    }
     
+    func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+        if let cell = tableView.cellForRow(at: indexPath) {
+            filters[indexPath.row].isSelected = false
+            cell.accessoryType = .none
+        }
+    }
 }
 
 extension FilterViewController: UITableViewDataSource {
@@ -71,8 +108,17 @@ extension FilterViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        <#code#>
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: FilterCell.identifier, for: indexPath) as? FilterCell
+        else {
+            return UITableViewCell()
+        }
+        
+        let cellViewModel = filters[indexPath.row]
+        cell.setup(with: cellViewModel)
+        
+        if indexPath.row == tableView.numberOfRows(inSection: indexPath.section) - 1 {
+            cell.separatorInset = UIEdgeInsets(top: 0, left: tableView.bounds.width, bottom: 0, right: 0)
+        }
+        return cell
     }
-    
-    
 }

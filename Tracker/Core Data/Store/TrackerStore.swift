@@ -181,30 +181,6 @@ extension TrackerStore: TrackerDataProviderProtocol {
         return tracker
     }
     
-//    func editRecord(_ tracker: Tracker) {
-//        let fetchRequest = TrackerCoreData.fetchRequest()
-//        let predicate = NSPredicate(format: "id == %@", tracker.id as NSUUID)
-//        fetchRequest.predicate = predicate
-//        do {
-//            let object = try context.fetch(fetchRequest)
-//            if let editableTracker = object.first {
-//                editableTracker.color = tracker.color
-//                editableTracker.emoji = tracker.emoji
-//                if let schedule = tracker.schedule {
-//                    editableTracker.schedule = Int16(WeekDay.toBitmask(days: Array(schedule)))
-//                }
-//                editableTracker.isPinned = tracker.isPinned
-//                editableTracker.title = tracker.title
-//                editableTracker.originalCategoryID = tracker.originalCategoryID
-//            }
-//            
-//            try context.save()
-//            
-//        }
-//        catch {
-//            print("[\(#function)] - ошибка удаления трекера.")
-//        }
-//    }
     func editRecord(_ tracker: Tracker, completion: @escaping (Bool) -> Void) {
         context.perform { [weak self] in
             guard let self = self else { return }
@@ -410,6 +386,21 @@ extension TrackerStore: NSFetchedResultsControllerDelegate {
             trackerStoreUpdate.insertedSections.insert(sectionIndex)
         default:
             break
+        }
+    }
+}
+
+extension TrackerStore: FilterDelegate {
+    func filterTracker(with mode: FilterModes, date: Date) {
+        switch mode {
+        case .all:
+            filterByDate(date)
+        case .today:
+            filterByDate(Date())
+        case .completed:
+            print("завершенные трекеры")
+        case .notCompleted:
+            print("незавершенные трекеры")
         }
     }
 }

@@ -1,8 +1,8 @@
 import UIKit
 
 struct FilterCellModel {
-    let title: String
-    let isSelected: Bool
+    let mode: FilterModes
+    var isSelected: Bool
 }
 
 final class FilterCell: UITableViewCell {
@@ -45,7 +45,7 @@ final class FilterCell: UITableViewCell {
     }
     
     func setup(with model: FilterCellModel) {
-        titleLabel.text = model.title
+        titleLabel.text = model.mode.rawValue
         if model.isSelected {
             self.accessoryType = .checkmark
         }
