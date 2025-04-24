@@ -336,6 +336,47 @@ extension TrackerStore: TrackerDataProviderProtocol {
             print("[\(#function)] - ошибка фильтрации")
         }
     }
+    
+    func filterByCompleteness(isCompleted: Bool, date: Date) {
+        let weekDays: [WeekDay] = [.Sunday, .Monday, .Tuesday, .Wednesday, .Thursday, .Friday, .Saturday]
+        
+        let selectedWeekDay = weekDays[Calendar.current.component(.weekday, from: date) - 1].bitValue
+        let dayMask = Int16(selectedWeekDay)
+        let startOfDay = Calendar.current.startOfDay(for: date) as NSDate
+        guard let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay as Date) as? NSDate else {
+            print("[\(#function)] - ошибка фильтрации.")
+            return
+        }
+        
+        let completedTrackerId = TrackerRecordStore.shared.completedTrackersId(date: date)
+        var predicate = NSPredicate()
+        if let completedTrackerId = completedTrackerId {
+            if isCompleted {
+                predicate = NSPredicate(format: "((schedule & %d != 0) OR (schedule == 0 AND createdAt >= %@ AND createdAt < %@)) AND (id IN %@)", dayMask, startOfDay, endOfDay, completedTrackerId)
+            } else {
+                predicate = NSPredicate(format: "((schedule & %d != 0) OR (schedule == 0 AND createdAt >= %@ AND createdAt < %@)) AND NOT(id IN %@)", dayMask, startOfDay, endOfDay, completedTrackerId)
+            }
+        }
+        else if completedTrackerId == nil {
+            if !isCompleted {
+                predicate = NSPredicate(format: "((schedule & %d != 0) OR (schedule == 0 AND createdAt >= %@ AND createdAt < %@))", dayMask, startOfDay, endOfDay)
+            } else {
+                predicate = NSPredicate(format: "FALSEPREDICATE")
+            }
+        }
+        
+        fetchedResultController.fetchRequest.predicate = predicate
+        do {
+            try fetchedResultController.performFetch()
+            DispatchQueue.main.async {
+                self.delegate?.collectionFullReload()
+            }
+        }
+        catch {
+            print("[\(#function)] - ошибка фильтрации.")
+        }
+
+    }
 }
 
 // MARK: - NSFetchedResultsControllerDelegate
@@ -398,9 +439,9 @@ extension TrackerStore: FilterDelegate {
         case .today:
             filterByDate(Date())
         case .completed:
-            print("завершенные трекеры")
+            filterByCompleteness(isCompleted: true, date: date)
         case .notCompleted:
-            print("незавершенные трекеры")
+            filterByCompleteness(isCompleted: false, date: date)
         }
     }
 }

@@ -16,7 +16,13 @@ final class FilterViewController: UIViewController {
         return filters.filter{ $0.isSelected }.first?.mode ?? .all
     }
     
-    var selectedDate: Date = Date()
+    var selectedDate: (() -> Date)?
+    
+//  Действия которые должен делать TrackersViewController при установке фильтра
+    var allSelected: (() -> Void)?
+    var todaySelected: (() -> Void)?
+    var completedSelected: (() -> Void)?
+    var notCompletedSelected: (() -> Void)?
     
     weak var delegate: FilterDelegate?
     
@@ -91,7 +97,21 @@ extension FilterViewController: UITableViewDelegate {
         }
         filters[indexPath.row].isSelected = true
         cell.setup(with: filters[indexPath.row])
-        delegate?.filterTracker(with: selectedMode, date: selectedDate)
+        guard let selectedDate = selectedDate else {
+            print("[\(#function)] - Текущая дата не указана.")
+            return
+        }
+        delegate?.filterTracker(with: selectedMode, date: selectedDate())
+        switch selectedMode {
+        case .all:
+            self.allSelected?()
+        case .completed:
+            self.completedSelected?()
+        case .notCompleted:
+            self.notCompletedSelected?()
+        case .today:
+            self.todaySelected?()
+        }
         self.dismiss(animated: true)
     }
     

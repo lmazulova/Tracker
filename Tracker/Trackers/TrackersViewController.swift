@@ -8,7 +8,13 @@ final class TrackersViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .customWhite
+        analyticsService.report(event: Event.open, screen: Screen.main)
         setupUI()
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        analyticsService.report(event: .close, screen: .main)
     }
     
     // MARK: - Public Properties
@@ -18,6 +24,7 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Private Properties
     private var filterViewController: FilterViewController?
+    private let analyticsService = AnalyticsService()
     
     private let params = GeometricParamsForCollectionView(
         cellCount: 2,
@@ -110,7 +117,8 @@ final class TrackersViewController: UIViewController {
         let stubImageView = UIImageView(image: UIImage(named: "trackerStub"))
         stubImageView.backgroundColor = .customWhite
         let stubLabel = UILabel()
-        stubLabel.text = "Что будем отслеживать?"
+        let stubText = NSLocalizedString("trackers_screen_stub", comment: "stub if there are no trackers on the screen")
+        stubLabel.text = stubText
         stubLabel.textColor = UIColor.customBlack
         stubLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         
@@ -254,6 +262,7 @@ final class TrackersViewController: UIViewController {
     
     @objc private func plusButtonTapped() {
         let trackerSelectionController = TrackerSelectionViewController()
+        analyticsService.report(event: .click, screen: .main, item: .add_track)
         present(trackerSelectionController, animated: true)
     }
     @objc private func dateChanged(_ datePicker: UIDatePicker) {
@@ -280,17 +289,41 @@ final class TrackersViewController: UIViewController {
         }
     }
     
+    private func bind() {
+        guard let filterViewController = filterViewController else { return }
+        filterViewController.allSelected = { [weak self] in
+            guard let self = self else { return }
+            self.filterButton.titleLabel?.textColor = .white
+        }
+        filterViewController.todaySelected = { [weak self] in
+            guard let self = self else { return }
+            self.filterButton.titleLabel?.textColor = .colorSelection11
+        }
+        filterViewController.completedSelected = { [weak self] in
+            guard let self = self else { return }
+            self.filterButton.titleLabel?.textColor = .colorSelection11
+        }
+        filterViewController.notCompletedSelected = { [weak self] in
+            guard let self = self else { return }
+            self.filterButton.titleLabel?.textColor = .colorSelection11
+        }
+        filterViewController.selectedDate = { [weak self] in
+            guard let self = self else { return Date()}
+            return self.currentDate
+        }
+    }
+    
     @objc private func filterButtonTappet() {
         guard let filterViewController = filterViewController else {
             filterViewController = FilterViewController()
             if let filterViewController = filterViewController {
-                filterViewController.selectedDate = currentDate
                 filterViewController.delegate = TrackerStore.shared
+                self.bind()
                 present(filterViewController, animated: true)
             }
             return
         }
-        filterViewController.selectedDate = currentDate
+        analyticsService.report(event: .click, screen: .main, item: .filter)
         present(filterViewController, animated: true)
     }
     

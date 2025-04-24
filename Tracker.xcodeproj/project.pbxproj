@@ -25,6 +25,7 @@
 		CE6934362DA9B44E00DC7108 /* NewCategoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6934352DA9B44E00DC7108 /* NewCategoryViewModel.swift */; };
 		CEA27FA62DBA81EA00C7F22A /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CEA27FA42DBA81EA00C7F22A /* Localizable.strings */; };
 		CEA27FAD2DBA90CC00C7F22A /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = CEA27FAB2DBA90CC00C7F22A /* Localizable.stringsdict */; };
+		CEA27FB02DBAA42300C7F22A /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA27FAF2DBAA42300C7F22A /* AnalyticsService.swift */; };
 		CEB00B2B2DA54FC800F703C6 /* OnboardingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB00B2A2DA54FC800F703C6 /* OnboardingViewController.swift */; };
 		CEB00B2D2DA5501400F703C6 /* OnboardingPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB00B2C2DA5500F00F703C6 /* OnboardingPage.swift */; };
 		CECBB6B92DBA52E6007C1DE0 /* FilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CECBB6B82DBA52D9007C1DE0 /* FilterViewController.swift */; };
@@ -73,6 +74,7 @@
 		CEA27FAA2DBA853400C7F22A /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		CEA27FAC2DBA90CC00C7F22A /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = en; path = en.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
 		CEA27FAE2DBA90D100C7F22A /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = ru; path = ru.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
+		CEA27FAF2DBAA42300C7F22A /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
 		CEB00B2A2DA54FC800F703C6 /* OnboardingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewController.swift; sourceTree = "<group>"; };
 		CEB00B2C2DA5500F00F703C6 /* OnboardingPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPage.swift; sourceTree = "<group>"; };
 		CECBB6B82DBA52D9007C1DE0 /* FilterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterViewController.swift; sourceTree = "<group>"; };
@@ -269,6 +271,7 @@
 			children = (
 				CEA27FA22DBA81B800C7F22A /* Resources */,
 				CEFB2DF92D689649002CF95C /* AppDelegate.swift */,
+				CEA27FAF2DBAA42300C7F22A /* AnalyticsService.swift */,
 				CEFB2DFB2D689649002CF95C /* SceneDelegate.swift */,
 				CEB00B292DA54F8D00F703C6 /* Onboarding */,
 				CEFB2E7D2D70AD56002CF95C /* TrackerStructures */,
@@ -440,6 +443,7 @@
 			files = (
 				CE6934342DA9925C00DC7108 /* CategoryViewModel.swift in Sources */,
 				CE319AD22D89E07D008E441C /* ItemsCell.swift in Sources */,
+				CEA27FB02DBAA42300C7F22A /* AnalyticsService.swift in Sources */,
 				CE319AD02D89DFBF008E441C /* ColorCell.swift in Sources */,
 				CE319ACE2D89DF91008E441C /* EmojiCell.swift in Sources */,
 				CE6934262DA69BFF00DC7108 /* TrackerStore.swift in Sources */,

@@ -6,6 +6,7 @@ final class TrackerCell: UICollectionViewCell {
     var daysAmount: Int = 0
     private var isPinned = false
     weak var delegate: TrackerCellDelegate?
+    private let analyticsService = AnalyticsService()
     
     // MARK: - Initialization
     override init(frame: CGRect) {
@@ -173,6 +174,7 @@ final class TrackerCell: UICollectionViewCell {
         plusButton.backgroundColor = plusButton.isSelected ? plusButton.backgroundColor?.withAlphaComponent(0.3) : plusButton.backgroundColor?.withAlphaComponent(1)
         guard let id = trackerID else { return }
         delegate?.updateCompletedTrackers(for: id)
+        analyticsService.report(event: .click, screen: .main, item: .track)
         updateDayCounterLabel()
     }
     
@@ -211,6 +213,7 @@ extension TrackerCell: UIContextMenuInteractionDelegate {
                 }
                 let editAction = UIAction(title: "Редактировать") { [weak self] _ in
                     guard let self = self else { return }
+                    analyticsService.report(event: .click, screen: .main, item: .edit)
                     self.editHandle?(daysString)
                 }
                 let deleteAction = UIAction(title: "Удалить", attributes: [.destructive]) { [weak self] _ in
@@ -220,6 +223,7 @@ extension TrackerCell: UIContextMenuInteractionDelegate {
                         print("[\(#function)] - Трекер для удаления не найден")
                         return
                     }
+                    analyticsService.report(event: .click, screen: .main, item: .delete)
                     self.deleteHandle?(id)
                 }
                 return UIMenu(children: [pinAction, editAction, deleteAction])
