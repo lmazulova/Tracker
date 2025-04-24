@@ -42,6 +42,18 @@ final class TrackersViewController: UIViewController {
         return button
     }()
     
+    private lazy var filterButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.layer.cornerRadius = 16
+        button.backgroundColor = .customBlue
+        button.setTitle("Фильтры", for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+        button.titleLabel?.textColor = .white
+        button.translatesAutoresizingMaskIntoConstraints = false
+        
+        return button
+    }()
+    
     private lazy var selectedDateButton: UIButton = {
         let dateButton = UIButton(type: .custom)
         dateButton.layer.cornerRadius = 8
@@ -170,6 +182,7 @@ final class TrackersViewController: UIViewController {
         view.addSubview(stubStackView)
         view.addSubview(collectionView)
         view.addSubview(searchStubStackView)
+        view.addSubview(filterButton)
         
         NSLayoutConstraint.activate([
             stubStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -179,8 +192,13 @@ final class TrackersViewController: UIViewController {
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 24),
-            collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+            collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            filterButton.widthAnchor.constraint(equalToConstant: 114),
+            filterButton.heightAnchor.constraint(equalToConstant: 50),
+            filterButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            filterButton.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
+        
         trackerDataProvider.filterByDate(currentDate)
     }
     
@@ -190,8 +208,10 @@ final class TrackersViewController: UIViewController {
             searchStubStackView.isHidden = state
             stubStackView.isHidden = true
             collectionView.isHidden = !state
+            filterButton.isHidden = true
         }
         else {
+            filterButton.isHidden = !state
             stubStackView.isHidden = state
             searchStubStackView.isHidden = true
             collectionView.isHidden = !state
@@ -263,13 +283,26 @@ final class TrackersViewController: UIViewController {
         alert.addAction(UIAlertAction(title: "Отменить", style: .cancel))
         self.present(alert, animated: true, completion: nil)
     }
-//    private func pinHandle() {
-//        
-//    }
-//    
-//    private func editHandle() {
-//        
-//    }
+
+    private func editTracker(tracker: Tracker, numberOfDays: String) {
+        let identifier: ControllersIdentifier = tracker.schedule == nil ? .irregularEvent : .habit
+        let editableTrackerController = TrackerCreationViewController(identifier: identifier, editableTracker: tracker, numberOfDays: numberOfDays)
+        //Bindings
+        editableTrackerController.trackerEditingCanceled = { [weak self] in
+            self?.dismiss(animated: true)
+        }
+        editableTrackerController.trackerEdited = { [weak self] tracker in
+                self?.trackerDataProvider.editRecord(tracker) { success in
+                    DispatchQueue.main.async {
+                        if success {
+                            self?.collectionView.reloadData()
+                        }
+                        self?.dismiss(animated: true)
+                    }
+                }
+            }
+        present(editableTrackerController, animated: true)
+    }
     
     // MARK: - Private Methods
     
@@ -314,6 +347,10 @@ extension TrackersViewController: UICollectionViewDataSource {
             cell.pinHandle = { [weak self] id in
                 guard let self = self else { return }
                 trackerDataProvider.pinTracker(with: id)
+            }
+            cell.editHandle = { [weak self] numberOfDays in
+                guard let self = self else { return }
+                self.editTracker(tracker: tracker, numberOfDays: numberOfDays)
             }
             
             cell.delegate = self

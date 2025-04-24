@@ -4,7 +4,6 @@ import CoreData
 protocol CategoryDataProviderProtocol: AnyObject {
     var numberOfRows: Int { get }
     func object(at index: Index) throws -> TrackerCategory
-    
     func addRecord(category: TrackerCategory) throws
 }
 

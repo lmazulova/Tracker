@@ -9,7 +9,7 @@ protocol CategoryViewModelProtocol: AnyObject {
     func category(at index: Index) -> CategoryViewModel
     func selectCategory(at index: Index)
     
-    var selectedCategoryTitle: String? { get }
+    var selectedCategory: TrackerCategory? { get }
     var visibleDataChanged: Binding<TrackerStoreUpdate>? { get set }
 }
 
@@ -17,9 +17,9 @@ final class CategoryListViewModel: CategoryViewModelProtocol {
     
     var visibleDataChanged: Binding<TrackerStoreUpdate>?
     
-    var selectedCategoryTitle: String? {
+    var selectedCategory: TrackerCategory? {
         guard let selectedIndexPath = selectedIndex else { return nil }
-        return title(at: selectedIndexPath)
+        return trackerCategory(at: selectedIndexPath)
     }
     
     private lazy var categoryDataProvider: CategoryDataProviderProtocol = {
@@ -43,10 +43,10 @@ final class CategoryListViewModel: CategoryViewModelProtocol {
         }
     }
     
-    func title(at index: Index) -> String {
+    func trackerCategory(at index: Index) -> TrackerCategory {
         do {
             let trackerCategory = try categoryDataProvider.object(at: index)
-            return trackerCategory.categoryTitle
+            return trackerCategory
         }
         catch CoreDataErrors.sectionOutOfRange(let index) {
             print("[\(#function)] - Объект с индексом - \(index) не найден.")
@@ -57,8 +57,7 @@ final class CategoryListViewModel: CategoryViewModelProtocol {
         catch {
             print("[\(#function)] - Непредвиденная ошибка: \(error.localizedDescription)")
         }
-        
-        return ""
+        return TrackerCategory(categoryTitle: "", id: UUID())
     }
     
     func isSelected(at index: Index) -> Bool {
@@ -66,9 +65,9 @@ final class CategoryListViewModel: CategoryViewModelProtocol {
     }
     
     func category(at index: Index) -> CategoryViewModel {
-        let title = title(at: index)
+        let category = trackerCategory(at: index)
         let isSelected = isSelected(at: index)
-        let categoryCellViewModel = CategoryViewModel(title: title, isSelected: isSelected)
+        let categoryCellViewModel = CategoryViewModel(id: category.id, title: category.categoryTitle, isSelected: isSelected)
         
         return categoryCellViewModel
     }

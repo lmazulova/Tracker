@@ -194,7 +194,7 @@ final class TrackerCell: UICollectionViewCell {
     }
     
     var pinHandle: Binding<UUID>?
-//    var editHandle: Binding<()>?
+    var editHandle: Binding<String>?
     var deleteHandle: Binding<UUID>?
     
     private func pinTracker(with id: UUID) {
@@ -221,19 +221,20 @@ extension TrackerCell: UIContextMenuInteractionDelegate {
                 let pinAction = UIAction(title: self.isPinned == true ? "Открепить" : "Закрепить") { [weak self] _ in
                     guard let self = self,
                           let id = trackerID else {
-                        print("[\(#function)] - трекер для закрепления не найден")
+                        print("[\(#function)] - Трекер для закрепления не найден")
                         return
                     }
                     self.pinTracker(with: id)
                 }
                 let editAction = UIAction(title: "Редактировать") { [weak self] _ in
-//                    self?.editHandle()
+                    guard let self = self else { return }
+                    self.editHandle?(daysString())
                 }
                 let deleteAction = UIAction(title: "Удалить", attributes: [.destructive]) { [weak self] _ in
                     guard let self = self,
                           let id = trackerID
                     else {
-                        print("[\(#function)] - трекер для удаления не найден")
+                        print("[\(#function)] - Трекер для удаления не найден")
                         return
                     }
                     self.deleteHandle?(id)

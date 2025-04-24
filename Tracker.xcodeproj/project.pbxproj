@@ -24,6 +24,8 @@
 		CE6934362DA9B44E00DC7108 /* NewCategoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6934352DA9B44E00DC7108 /* NewCategoryViewModel.swift */; };
 		CEB00B2B2DA54FC800F703C6 /* OnboardingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB00B2A2DA54FC800F703C6 /* OnboardingViewController.swift */; };
 		CEB00B2D2DA5501400F703C6 /* OnboardingPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB00B2C2DA5500F00F703C6 /* OnboardingPage.swift */; };
+		CECBB6B92DBA52E6007C1DE0 /* FilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CECBB6B82DBA52D9007C1DE0 /* FilterViewController.swift */; };
+		CECBB6BB2DBA545B007C1DE0 /* FilterCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CECBB6BA2DBA5452007C1DE0 /* FilterCell.swift */; };
 		CEDADE7F2D78C06F005E7BD3 /* GeometricParamsForCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDADE7E2D78C06F005E7BD3 /* GeometricParamsForCollectionView.swift */; };
 		CEEC37A32D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEC37A22D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift */; };
 		CEEED9122D75D955008FAB02 /* TrackerCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEED9112D75D955008FAB02 /* TrackerCell.swift */; };
@@ -62,6 +64,8 @@
 		CE6934352DA9B44E00DC7108 /* NewCategoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewCategoryViewModel.swift; sourceTree = "<group>"; };
 		CEB00B2A2DA54FC800F703C6 /* OnboardingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewController.swift; sourceTree = "<group>"; };
 		CEB00B2C2DA5500F00F703C6 /* OnboardingPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPage.swift; sourceTree = "<group>"; };
+		CECBB6B82DBA52D9007C1DE0 /* FilterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterViewController.swift; sourceTree = "<group>"; };
+		CECBB6BA2DBA5452007C1DE0 /* FilterCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterCell.swift; sourceTree = "<group>"; };
 		CEDADE7E2D78C06F005E7BD3 /* GeometricParamsForCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeometricParamsForCollectionView.swift; sourceTree = "<group>"; };
 		CEEC37A22D7B4EC200AB3C29 /* TrackerPresenterProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerPresenterProtocol.swift; sourceTree = "<group>"; };
 		CEEED9112D75D955008FAB02 /* TrackerCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerCell.swift; sourceTree = "<group>"; };
@@ -195,6 +199,15 @@
 			path = Onboarding;
 			sourceTree = "<group>";
 		};
+		CECBB6B72DBA52C1007C1DE0 /* FilterViewController */ = {
+			isa = PBXGroup;
+			children = (
+				CECBB6B82DBA52D9007C1DE0 /* FilterViewController.swift */,
+				CECBB6BA2DBA5452007C1DE0 /* FilterCell.swift */,
+			);
+			path = FilterViewController;
+			sourceTree = "<group>";
+		};
 		CEFB2DED2D689649002CF95C = {
 			isa = PBXGroup;
 			children = (
@@ -241,6 +254,7 @@
 			isa = PBXGroup;
 			children = (
 				CEFB2E102D68C610002CF95C /* TrackersViewController.swift */,
+				CECBB6B72DBA52C1007C1DE0 /* FilterViewController */,
 				CE55AC222D842C5E00592662 /* CollectionViewHelpers */,
 				CE22280E2D78717000E8F2C6 /* AddingNewTracker */,
 				CE6934212DA5A6D600DC7108 /* AddingNewCategory */,
@@ -350,7 +364,9 @@
 				CEF853B12D7F409000C7732D /* TrackerCellDelegateProtocol.swift in Sources */,
 				CEFB2E812D70ADA1002CF95C /* TrackerCategory.swift in Sources */,
 				CE6934232DA5A71A00DC7108 /* CategoryViewController.swift in Sources */,
+				CECBB6BB2DBA545B007C1DE0 /* FilterCell.swift in Sources */,
 				CE319ACC2D89C3A0008E441C /* TrackerAttributes.swift in Sources */,
+				CECBB6B92DBA52E6007C1DE0 /* FilterViewController.swift in Sources */,
 				CE69342E2DA6CDB800DC7108 /* NewCategoryViewController.swift in Sources */,
 				CEFB2DFE2D689649002CF95C /* TabBarController.swift in Sources */,
 				CEFB2E112D68C610002CF95C /* TrackersViewController.swift in Sources */,

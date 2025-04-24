@@ -6,6 +6,7 @@ protocol TrackerDataProviderProtocol: AnyObject {
     func numberOfRowsInSection(_ section: Int) -> Int
     func object(at indexPath: IndexPath) throws -> Tracker
     func addRecord(_ record: Tracker) throws
+    func editRecord(_ tracker: Tracker, completion: @escaping (Bool) -> Void)
     func filterByDate(_ date: Date)
     func filterByTitle(_ title: String)
     func titleForSection(_ section: Int) -> String?
@@ -50,7 +51,10 @@ final class TrackerStore: NSObject {
     private lazy var fetchedResultController: NSFetchedResultsController<TrackerCoreData> = {
         
         let fetchRequest = TrackerCoreData.fetchRequest()
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: true)]
+        fetchRequest.sortDescriptors = [
+            NSSortDescriptor(key: "category.createdAt", ascending: true),
+            NSSortDescriptor(key: "createdAt", ascending: true)
+        ]
         
         let fetchResultController = NSFetchedResultsController(
             fetchRequest: fetchRequest,
@@ -112,17 +116,17 @@ final class TrackerStore: NSObject {
         }
     }
     
-    private func findCategory(by title: String, in context: NSManagedObjectContext) throws -> TrackerCategoryCoreData? {
+    private func findCategory(by id: UUID, in context: NSManagedObjectContext) throws -> TrackerCategoryCoreData? {
         let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
-        request.predicate = NSPredicate(format: "categoryTitle == %@", title)
+        request.predicate = NSPredicate(format: "id == %@", id as NSUUID)
         
         let category = try? context.fetch(request)
         return category?.first
     }
     
-    private func convertToTrackerCoreDataAndSave(_ tracker: Tracker, with context: NSManagedObjectContext) throws {
+    private func convertToTrackerCoreData(_ tracker: Tracker, with context: NSManagedObjectContext) throws {
         let trackerCoreData = TrackerCoreData(context: context)
-        trackerCoreData.category = try? findCategory(by: tracker.category.categoryTitle, in: context)
+        trackerCoreData.category = try? findCategory(by: tracker.category.id, in: context)
         trackerCoreData.color = tracker.color
         trackerCoreData.createdAt = Date()
         trackerCoreData.emoji = tracker.emoji
@@ -177,6 +181,61 @@ extension TrackerStore: TrackerDataProviderProtocol {
         return tracker
     }
     
+//    func editRecord(_ tracker: Tracker) {
+//        let fetchRequest = TrackerCoreData.fetchRequest()
+//        let predicate = NSPredicate(format: "id == %@", tracker.id as NSUUID)
+//        fetchRequest.predicate = predicate
+//        do {
+//            let object = try context.fetch(fetchRequest)
+//            if let editableTracker = object.first {
+//                editableTracker.color = tracker.color
+//                editableTracker.emoji = tracker.emoji
+//                if let schedule = tracker.schedule {
+//                    editableTracker.schedule = Int16(WeekDay.toBitmask(days: Array(schedule)))
+//                }
+//                editableTracker.isPinned = tracker.isPinned
+//                editableTracker.title = tracker.title
+//                editableTracker.originalCategoryID = tracker.originalCategoryID
+//            }
+//            
+//            try context.save()
+//            
+//        }
+//        catch {
+//            print("[\(#function)] - ошибка удаления трекера.")
+//        }
+//    }
+    func editRecord(_ tracker: Tracker, completion: @escaping (Bool) -> Void) {
+        context.perform { [weak self] in
+            guard let self = self else { return }
+            
+            let fetchRequest = TrackerCoreData.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "id == %@", tracker.id as NSUUID)
+            
+            do {
+                if let editableTracker = try self.context.fetch(fetchRequest).first {
+                    editableTracker.color = tracker.color
+                    editableTracker.emoji = tracker.emoji
+                    if let schedule = tracker.schedule {
+                        editableTracker.schedule = Int16(WeekDay.toBitmask(days: Array(schedule)))
+                    }
+                    editableTracker.isPinned = tracker.isPinned
+                    editableTracker.title = tracker.title
+                    editableTracker.originalCategoryID = tracker.originalCategoryID
+                    
+                    try self.context.save()
+                    DispatchQueue.main.async {
+                        completion(true)
+                    }
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    completion(false)
+                }
+                print("Ошибка редактирования: \(error)")
+            }
+        }
+    }
     func pinTracker(with id: UUID) {
         let fetchRequest = TrackerCoreData.fetchRequest()
         let predicate = NSPredicate(format: "id == %@", id as NSUUID)
@@ -235,14 +294,14 @@ extension TrackerStore: TrackerDataProviderProtocol {
             
         }
         catch {
-            print("[\(#function)] - ошибка удаления трекера.")
+            print("[\(#function)] - Ошибка удаления трекера.")
         }
     }
     
     func addRecord(_ record: Tracker) throws {
         try performSync { context in
             Result {
-                try convertToTrackerCoreDataAndSave(record, with: context)
+                try convertToTrackerCoreData(record, with: context)
                 try context.save()
             }
         }

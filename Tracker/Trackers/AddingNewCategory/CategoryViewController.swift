@@ -111,7 +111,7 @@ final class CategoryViewController: UIViewController {
         }
     }
     
-    var setupCategoryTitle: Binding<String>?
+    var setupCategory: Binding<TrackerCategory>?
     
     //MARK: - Lifecycle Methods
     override func viewDidLoad() {
@@ -202,7 +202,7 @@ extension CategoryViewController: UITableViewDelegate {
         }
         viewModel.selectCategory(at: indexPath.row)
         cell.setup(with: viewModel.category(at: indexPath.row))
-        setupCategoryTitle?(viewModel.selectedCategoryTitle ?? "")
+        setupCategory?(viewModel.selectedCategory ?? TrackerCategory(categoryTitle: "", id: UUID()))
         self.dismiss(animated: true)
     }
     

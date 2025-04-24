@@ -9,25 +9,29 @@ enum ControllersIdentifier: String {
 final class TrackerCreationViewController: UIViewController {
     
     // MARK: - Public Properties
-    //т.к. тому кто реализует TrackerPresenterProtocol не нужно знать ничего о классе который управляет созданием ячейки, делегат можно сделать одностронним, и тогда приставка weak не нужна, т.к. нет условий для retain cycle
+    //т.к. тому кто реализует TrackerPresenterProtocol не нужно знать ничего о классе который управляет созданием ячейки, делегат можно сделать односторонним, и тогда приставка weak не нужна, т.к. нет условий для retain cycle
     var delegate: TrackerPresenterProtocol?
     var identifier: ControllersIdentifier
+    
+    // MARK: - Editing Bindings
+    var trackerEdited: Binding<Tracker>?
+    var trackerEditingCanceled: (() -> Void)?
     
     // MARK: - Private Properties
     private lazy var categoryViewController: CategoryViewController = {
         let controller = CategoryViewController()
-        
         return controller
     }()
     
     private lazy var scheduleViewController = ScheduleViewController()
     
-    private var scheduleSelected: Bool = false
-    private var trackerTitleFilled: Bool = false
-    private var categoryTitleFilled: Bool = false
+    private var scheduleSelected: Bool { return schedule != nil }
+    //force unwrap здесь уместен, так как второе условие автоматически не будет проверяться если первое будет false
+    private var trackerTitleFilled: Bool { return trackerTitle != nil && !trackerTitle!.isEmpty }
+    private var categoryTitleFilled: Bool { return selectedCategory != nil && !selectedCategory!.categoryTitle.isEmpty }
     private var schedule: Set<WeekDay>?
     private var trackerTitle: String?
-    private var categoryTitle: String?
+    private var selectedCategory: TrackerCategory?
     private let characterLimit = 38
     private var selectedEmojiPath: IndexPath?
     private var selectedColorPath: IndexPath?
@@ -37,15 +41,29 @@ final class TrackerCreationViewController: UIViewController {
         rightInset: 10,
         cellSpacing: 5
     )
-
-    init(identifier: ControllersIdentifier) {
+    private var editableTracker: Tracker?
+    private var numberOfDays: String?
+    private var isEditableMode: Bool { editableTracker != nil}
+    private var navigationBarTitle: String {
+        if isEditableMode {
+            return "Редактирование привычки"
+        }
+        else if identifier == .habit {
+            return "Новая привычка"
+        } else {
+            return "Новое нерегулярное событие"
+        }
+    }
+    init(identifier: ControllersIdentifier, editableTracker: Tracker? = nil, numberOfDays: String? = nil) {
         self.identifier = identifier
+        self.editableTracker = editableTracker
+        self.numberOfDays = numberOfDays
+        
         super.init(nibName: nil, bundle: nil)
     }
-    
-    func setupCategoryTitle(_ title: String) {
-        categoryTitle = title
-        categoryTitleFilled = true
+
+    func setupCategory(_ category: TrackerCategory) {
+        selectedCategory = category
         checkingButtonActivation()
     }
     
@@ -54,6 +72,14 @@ final class TrackerCreationViewController: UIViewController {
     }
     
     // UI Elements
+    private lazy var numberOfDaysLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 32, weight: .bold)
+        label.text = numberOfDays
+        label.isHidden = !isEditableMode
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
     private let scrollView: UIScrollView = {
         let scrollView = UIScrollView()
         scrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -141,6 +167,15 @@ final class TrackerCreationViewController: UIViewController {
         return view
     }()
     
+    private lazy var textFieldStack: UIStackView = {
+        let textFieldStack = UIStackView(arrangedSubviews: [textFieldView, warningLabel])
+        textFieldStack.translatesAutoresizingMaskIntoConstraints = false
+        textFieldStack.axis = .vertical
+        textFieldStack.spacing = 8
+        
+        return textFieldStack
+    }()
+    
     private lazy var warningLabel: UILabel = {
         let label = UILabel()
         label.text = "Ограничение \(characterLimit) символов"
@@ -222,9 +257,14 @@ final class TrackerCreationViewController: UIViewController {
         collectionView.delegate = self
         collectionView.dataSource = self
         textView.delegate = self
-        setupNavigationBar()
+        setupNavigationBar(with: navigationBarTitle)
         setupConstraints()
         setupActions()
+        if isEditableMode,
+           let editableTracker = editableTracker,
+           let numberOfDays = numberOfDays {
+            setupEditableProperties(tracker: editableTracker, numberOfDays: numberOfDays)
+        }
     }
     
     
@@ -242,10 +282,6 @@ final class TrackerCreationViewController: UIViewController {
     
     // MARK: - UI Configuration
     private func setupConstraints() {
-        let textFieldStack = UIStackView(arrangedSubviews: [textFieldView, warningLabel])
-        textFieldStack.translatesAutoresizingMaskIntoConstraints = false
-        textFieldStack.axis = .vertical
-        textFieldStack.spacing = 8
         warningLabel.isHidden = true
         
         view.addSubview(scrollView)
@@ -255,56 +291,111 @@ final class TrackerCreationViewController: UIViewController {
         contentView.addSubview(createButton)
         contentView.addSubview(tableView)
         contentView.addSubview(collectionView)
+        contentView.addSubview(numberOfDaysLabel)
         
-        NSLayoutConstraint.activate([
-            navigationBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            navigationBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            navigationBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            
-            scrollView.topAnchor.constraint(equalTo: navigationBar.bottomAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            
-            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
-            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
-            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
-            
-            textFieldStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            textFieldStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            textFieldStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
-            
-            textFieldView.leadingAnchor.constraint(equalTo: textFieldStack.leadingAnchor),
-            textFieldView.trailingAnchor.constraint(equalTo: textFieldStack.trailingAnchor),
-            textFieldView.heightAnchor.constraint(equalToConstant: 75),
-            
-            warningLabel.leadingAnchor.constraint(equalTo: textFieldStack.leadingAnchor),
-            warningLabel.trailingAnchor.constraint(equalTo: textFieldStack.trailingAnchor),
-            warningLabel.centerXAnchor.constraint(equalTo: textFieldStack.centerXAnchor),
-            
-            tableView.topAnchor.constraint(equalTo: textFieldStack.bottomAnchor, constant: 24),
-            tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+        if isEditableMode {
+            NSLayoutConstraint.activate([
+                navigationBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+                navigationBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                navigationBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                
+                scrollView.topAnchor.constraint(equalTo: navigationBar.bottomAnchor),
+                scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+                scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                
+                contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+                contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+                contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+                contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+                contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+                
+                numberOfDaysLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
+                numberOfDaysLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                
+                textFieldStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+                textFieldStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+                textFieldStack.topAnchor.constraint(equalTo: numberOfDaysLabel.bottomAnchor, constant: 40),
+                
+                textFieldView.leadingAnchor.constraint(equalTo: textFieldStack.leadingAnchor),
+                textFieldView.trailingAnchor.constraint(equalTo: textFieldStack.trailingAnchor),
+                textFieldView.heightAnchor.constraint(equalToConstant: 75),
+                
+                warningLabel.leadingAnchor.constraint(equalTo: textFieldStack.leadingAnchor),
+                warningLabel.trailingAnchor.constraint(equalTo: textFieldStack.trailingAnchor),
+                warningLabel.centerXAnchor.constraint(equalTo: textFieldStack.centerXAnchor),
+                
+                tableView.topAnchor.constraint(equalTo: textFieldStack.bottomAnchor, constant: 24),
+                tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+                tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
 
-            collectionView.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 32),
-            collectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            
-            cancelButton.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 16),
-            cancelButton.leadingAnchor.constraint(equalTo: collectionView.leadingAnchor, constant: 20),
-            cancelButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            cancelButton.heightAnchor.constraint(equalToConstant: 60),
-            
-            createButton.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 16),
-            createButton.trailingAnchor.constraint(equalTo: collectionView.trailingAnchor, constant: -20),
-            createButton.leadingAnchor.constraint(equalTo: cancelButton.trailingAnchor, constant: 8),
-            createButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            createButton.heightAnchor.constraint(equalToConstant: 60),
-            createButton.widthAnchor.constraint(equalTo: cancelButton.widthAnchor)
-        ])
-        
+                collectionView.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 32),
+                collectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+                collectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+                
+                cancelButton.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 16),
+                cancelButton.leadingAnchor.constraint(equalTo: collectionView.leadingAnchor, constant: 20),
+                cancelButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+                cancelButton.heightAnchor.constraint(equalToConstant: 60),
+                
+                createButton.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 16),
+                createButton.trailingAnchor.constraint(equalTo: collectionView.trailingAnchor, constant: -20),
+                createButton.leadingAnchor.constraint(equalTo: cancelButton.trailingAnchor, constant: 8),
+                createButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+                createButton.heightAnchor.constraint(equalToConstant: 60),
+                createButton.widthAnchor.constraint(equalTo: cancelButton.widthAnchor)
+            ])
+        }
+        else {
+            NSLayoutConstraint.activate([
+                navigationBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+                navigationBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                navigationBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                
+                scrollView.topAnchor.constraint(equalTo: navigationBar.bottomAnchor),
+                scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+                scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                
+                contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+                contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+                contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+                contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+                contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+                
+                textFieldStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+                textFieldStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+                textFieldStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
+                
+                textFieldView.leadingAnchor.constraint(equalTo: textFieldStack.leadingAnchor),
+                textFieldView.trailingAnchor.constraint(equalTo: textFieldStack.trailingAnchor),
+                textFieldView.heightAnchor.constraint(equalToConstant: 75),
+                
+                warningLabel.leadingAnchor.constraint(equalTo: textFieldStack.leadingAnchor),
+                warningLabel.trailingAnchor.constraint(equalTo: textFieldStack.trailingAnchor),
+                warningLabel.centerXAnchor.constraint(equalTo: textFieldStack.centerXAnchor),
+                
+                tableView.topAnchor.constraint(equalTo: textFieldStack.bottomAnchor, constant: 24),
+                tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+                tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+                
+                collectionView.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 32),
+                collectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+                collectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+                
+                cancelButton.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 16),
+                cancelButton.leadingAnchor.constraint(equalTo: collectionView.leadingAnchor, constant: 20),
+                cancelButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+                cancelButton.heightAnchor.constraint(equalToConstant: 60),
+                
+                createButton.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 16),
+                createButton.trailingAnchor.constraint(equalTo: collectionView.trailingAnchor, constant: -20),
+                createButton.leadingAnchor.constraint(equalTo: cancelButton.trailingAnchor, constant: 8),
+                createButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+                createButton.heightAnchor.constraint(equalToConstant: 60),
+                createButton.widthAnchor.constraint(equalTo: cancelButton.widthAnchor)
+            ])
+        }
         if identifier == ControllersIdentifier.habit {
             tableView.heightAnchor.constraint(equalToConstant: 150).isActive = true
         }
@@ -312,17 +403,33 @@ final class TrackerCreationViewController: UIViewController {
             tableView.heightAnchor.constraint(equalToConstant: 75).isActive = true
         }
     }
+    
+    private func setupEditableProperties(tracker: Tracker, numberOfDays: String) {
+        setTitle(title: tracker.title)
+        textView.text = tracker.title
+        deleteButton.isHidden = false
+        placeHolderLabel.isHidden = true
+        setupCategory(tracker.category)
+        if let schedule = tracker.schedule {
+            setSchedule(for: schedule)
+        }
+        selectedEmojiPath = IndexPath(row: TrackerAttributes.emojis.firstIndex(where: { $0 == tracker.emoji}) ?? 0, section: 0)
+        selectedColorPath = IndexPath(row: TrackerAttributes.colors.firstIndex(where: { $0 == tracker.color}) ?? 0, section: 1)
+        
+        checkingButtonActivation()
 
+    }
+    
     private func setupActions() {
         cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
         createButton.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
     }
     
-    private func setupNavigationBar() {
+    private func setupNavigationBar(with title: String) {
         navigationBar.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(navigationBar)
         
-        let title = UINavigationItem(title: "Новая привычка")
+        let title = UINavigationItem(title: title)
         navigationBar.setItems([title], animated: false)
         navigationBar.titleTextAttributes = [
             .font: UIFont.systemFont(ofSize: 16, weight: .medium),
@@ -351,37 +458,53 @@ final class TrackerCreationViewController: UIViewController {
     }
     
     private func setSchedule(for weekDays: Set<WeekDay>) {
-        guard weekDays.count > 0 else {
-            scheduleSelected = false
-            return
-        }
         schedule = weekDays
-        scheduleSelected = true
         checkingButtonActivation()
     }
     
     private func setTitle(title: String) {
         trackerTitle = title
-        trackerTitleFilled = true
         checkingButtonActivation()
     }
     
     // MARK: - Actions
     @objc private func cancelButtonTapped() {
-        delegate?.cancelingTrackerCreation()
+        if isEditableMode {
+            self.trackerEditingCanceled?()
+        }
+        else {
+            delegate?.cancelingTrackerCreation()
+        }
     }
     
     @objc private func createButtonTapped() {
-        let tracker = Tracker(
-            title: trackerTitle ?? "",
-            color: TrackerAttributes.colors[selectedColorPath?.row ?? 0],
-            emoji: TrackerAttributes.emojis[selectedEmojiPath?.row ?? 0],
-            schedule: schedule, 
-            category: TrackerCategory(categoryTitle: categoryTitle ?? "", id: UUID()),
-            isPinned: false
-        )
-        delegate?.addTracker(tracker)
-        delegate?.cancelingTrackerCreation()
+        if isEditableMode {
+            guard let editableTracker = editableTracker else {
+                print("[\(#function)] - Не найден трекер для редактирования.")
+                return
+            }
+            let editedTracker = Tracker(
+                id: editableTracker.id,
+                title: trackerTitle ?? "",
+                color: TrackerAttributes.colors[selectedColorPath?.row ?? 0],
+                emoji: TrackerAttributes.emojis[selectedEmojiPath?.row ?? 0],
+                schedule: schedule,
+                category: selectedCategory ?? TrackerCategory(categoryTitle: "", id: UUID())
+            )
+            self.trackerEdited?(editedTracker)
+        }
+        else {
+            let tracker = Tracker(
+                title: trackerTitle ?? "",
+                color: TrackerAttributes.colors[selectedColorPath?.row ?? 0],
+                emoji: TrackerAttributes.emojis[selectedEmojiPath?.row ?? 0],
+                schedule: schedule,
+                category: selectedCategory ?? TrackerCategory(categoryTitle: "", id: UUID()),
+                isPinned: false
+            )
+            delegate?.addTracker(tracker)
+            delegate?.cancelingTrackerCreation()
+        }
     }
     
     @objc private func clearTextView() {
@@ -389,7 +512,6 @@ final class TrackerCreationViewController: UIViewController {
         warningLabel.isHidden = true
         deleteButton.isHidden = true
         placeHolderLabel.isHidden = false
-        trackerTitleFilled = false
         checkingButtonActivation()
     }
     
@@ -404,9 +526,9 @@ extension TrackerCreationViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         switch indexPath.row {
         case 0:
-            categoryViewController.setupCategoryTitle = { [weak self] title in
+            categoryViewController.setupCategory = { [weak self] category in
                 guard let self = self else { return }
-                setupCategoryTitle(title)
+                setupCategory(category)
                 self.tableView.reloadData()
             }
             present(categoryViewController, animated: true)
@@ -437,7 +559,7 @@ extension TrackerCreationViewController: UITableViewDataSource {
         }
         if indexPath.row == 0 {
             cell.setupCellTitle(title: "Категория")
-            cell.setupSelectedCategory(title: categoryTitle ?? "")
+            cell.setupSelectedCategory(title: selectedCategory?.categoryTitle ?? "")
             if identifier == ControllersIdentifier.irregularEvent {
                 cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: tableView.bounds.width)
             }
@@ -458,14 +580,12 @@ extension TrackerCreationViewController: UITextViewDelegate {
         placeHolderLabel.isHidden = !textView.text.isEmpty
         if textView.text.isEmpty {
             warningLabel.isHidden = true
-            trackerTitleFilled = false
             checkingButtonActivation()
             return
         }
         
         if textView.text.count > characterLimit {
             warningLabel.isHidden = false
-            trackerTitleFilled = false
             checkingButtonActivation()
         }
         
@@ -502,12 +622,18 @@ extension TrackerCreationViewController: UICollectionViewDataSource {
                 return UICollectionViewCell()
             }
             cell.configureCell(with: TrackerAttributes.emojis[indexPath.row])
+            if indexPath == selectedEmojiPath {
+                cell.cellDidSelect()
+            }
             return cell
         } else {
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ColorCell.identifier, for: indexPath) as? ColorCell else {
                 return UICollectionViewCell()
             }
             cell.configureCell(with: TrackerAttributes.colors[indexPath.row])
+            if indexPath == selectedColorPath {
+                cell.cellDidSelect()
+            }
             return cell
         }
     }
