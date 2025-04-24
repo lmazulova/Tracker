@@ -28,6 +28,7 @@ final class CategoryViewController: UIViewController {
         tableView.rowHeight = 75
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        tableView.separatorColor = .customGray
         tableView.register(CategoryCell.self, forCellReuseIdentifier: CategoryCell.identifier)
         tableView.delegate = self
         tableView.dataSource = self
@@ -86,7 +87,7 @@ final class CategoryViewController: UIViewController {
         button.setTitle("Добавить категорию", for: .normal)
         button.layer.cornerRadius = 16
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        button.titleLabel?.textColor = .customWhite
+        button.setTitleColor(.customWhite, for: .normal)
         button.backgroundColor = .customBlack
         
         button.addTarget(self, action: #selector(addCategory), for: .touchUpInside)

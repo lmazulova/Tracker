@@ -25,6 +25,7 @@ final class TrackerCell: UICollectionViewCell {
     
     // MARK: - Private Properties
     
+    private var daysString: String { return String.localizedStringWithFormat(NSLocalizedString("numberOfDays", comment: "number of days in which the task was completed"), daysAmount) }
     private let card: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 16
@@ -35,7 +36,7 @@ final class TrackerCell: UICollectionViewCell {
     private let cardText: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
-        label.textColor = .customWhite
+        label.textColor = .white
         label.numberOfLines = 0
         label.lineBreakMode = .byWordWrapping
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -105,25 +106,7 @@ final class TrackerCell: UICollectionViewCell {
         else {
             daysAmount -= 1
         }
-        dayCounterLabel.text = daysString()
-    }
-    
-    private func daysString() -> String {
-        let lastDigit = daysAmount % 10
-        let lastTwoDigits = daysAmount % 100
-        
-        let word: String
-        if lastTwoDigits >= 11 && lastTwoDigits <= 14 {
-            word = "дней"
-        } else if lastDigit == 1 {
-            word = "день"
-        } else if lastDigit >= 2 && lastDigit <= 4 {
-            word = "дня"
-        } else {
-            word = "дней"
-        }
-        
-        return "\(daysAmount) \(word)"
+        dayCounterLabel.text = daysString
     }
     
     private func setupCellConstraints() {
@@ -177,7 +160,7 @@ final class TrackerCell: UICollectionViewCell {
         plusButton.isSelected = plusButtonState
         plusButton.isEnabled = (currentDate <= Calendar.current.startOfDay(for: Date()))
         plusButton.backgroundColor = plusButtonState ? tracker.color.withAlphaComponent(0.3) : tracker.color
-        dayCounterLabel.text = daysString()
+        dayCounterLabel.text = daysString
         isPinned = tracker.isPinned
         pinView.isHidden = !isPinned
         //Interaction
@@ -228,7 +211,7 @@ extension TrackerCell: UIContextMenuInteractionDelegate {
                 }
                 let editAction = UIAction(title: "Редактировать") { [weak self] _ in
                     guard let self = self else { return }
-                    self.editHandle?(daysString())
+                    self.editHandle?(daysString)
                 }
                 let deleteAction = UIAction(title: "Удалить", attributes: [.destructive]) { [weak self] _ in
                     guard let self = self,

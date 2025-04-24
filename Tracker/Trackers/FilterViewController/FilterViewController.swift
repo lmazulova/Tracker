@@ -38,6 +38,7 @@ final class FilterViewController: UIViewController {
         tableView.register(FilterCell.self, forCellReuseIdentifier: FilterCell.identifier)
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.separatorColor = .customGray
         tableView.allowsMultipleSelection = false
         
         return tableView

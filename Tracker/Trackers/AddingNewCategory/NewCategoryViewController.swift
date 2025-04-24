@@ -45,7 +45,7 @@ final class NewCategoryViewController: UIViewController {
         button.setTitle("Готово", for: .normal)
         button.layer.cornerRadius = 16
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        button.titleLabel?.textColor = .customWhite
+        button.setTitleColor(.customWhite, for: .normal)
         button.backgroundColor = UIColor.customGray
         button.isEnabled = false
         button.addTarget(self, action: #selector(addNewCategory), for: .touchUpInside)

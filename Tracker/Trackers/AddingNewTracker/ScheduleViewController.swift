@@ -15,6 +15,7 @@ final class ScheduleViewController: UIViewController {
         tableView.isScrollEnabled = true
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        tableView.separatorColor = .customGray
         tableView.register(DayOfWeekCell.self, forCellReuseIdentifier: DayOfWeekCell.identifier)
         return tableView
     }()
@@ -23,7 +24,7 @@ final class ScheduleViewController: UIViewController {
         let button = UIButton(type: .custom)
         button.setTitle("Готово", for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        button.setTitleColor(UIColor.white, for: .normal)
+        button.setTitleColor(.customWhite, for: .normal)
         button.layer.cornerRadius = 16
         button.backgroundColor = UIColor.customBlack
         button.translatesAutoresizingMaskIntoConstraints = false

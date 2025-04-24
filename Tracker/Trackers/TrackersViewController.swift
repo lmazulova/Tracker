@@ -47,7 +47,8 @@ final class TrackersViewController: UIViewController {
         let button = UIButton(type: .custom)
         button.layer.cornerRadius = 16
         button.backgroundColor = .customBlue
-        button.setTitle("Фильтры", for: .normal)
+        let buttonText = NSLocalizedString("filter", comment: "text for filter button")
+        button.setTitle(buttonText, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         button.titleLabel?.textColor = .white
         button.addTarget(self, action: #selector(filterButtonTappet), for: .touchUpInside)
@@ -71,7 +72,7 @@ final class TrackersViewController: UIViewController {
     
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "Трекеры"
+        label.text = NSLocalizedString("trackersTitle", comment: "title for trackers screen")
         label.font = UIFont.systemFont(ofSize: 34, weight: .bold)
         label.translatesAutoresizingMaskIntoConstraints = false
         
@@ -80,8 +81,10 @@ final class TrackersViewController: UIViewController {
     
     private lazy var searchBar: UISearchBar = {
         let searchBar = UISearchBar()
-        searchBar.placeholder = "Поиск"
-        searchBar.setValue("Отменить", forKey: "cancelButtonText")
+        let placeholderText = NSLocalizedString("search", comment: "placeholder text for UISearch")
+        searchBar.placeholder = placeholderText
+        let cancelText = NSLocalizedString("cancel", comment: "cancel search")
+        searchBar.setValue(cancelText, forKey: "cancelButtonText")
         if let textField = searchBar.value(forKey: "searchField") as? UITextField {
             textField.clearButtonMode = .never
         }
@@ -293,12 +296,15 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Context Menu Actions
     private func showDeleteAlert(for trackerId: UUID) {
-        let alert = UIAlertController(title: "", message: "Уверены что хотите удалить этот трекер?", preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: "Удалить", style: .destructive, handler: { [weak self] _ in
+        let deleteText = NSLocalizedString("delete", comment: "delete tracker")
+        let alertMessage = NSLocalizedString("deleteMessage", comment: "warning message about tracker deleting")
+        let alert = UIAlertController(title: "", message: alertMessage, preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: deleteText, style: .destructive, handler: { [weak self] _ in
             self?.trackerDataProvider.deleteTracker(with: trackerId)
         })
         )
-        alert.addAction(UIAlertAction(title: "Отменить", style: .cancel))
+        let cancelText = NSLocalizedString("cancel", comment: "cancel tracker deletion")
+        alert.addAction(UIAlertAction(title: cancelText, style: .cancel))
         self.present(alert, animated: true, completion: nil)
     }
 

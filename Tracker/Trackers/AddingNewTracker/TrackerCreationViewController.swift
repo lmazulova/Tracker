@@ -197,6 +197,7 @@ final class TrackerCreationViewController: UIViewController {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         tableView.rowHeight = 75
+        tableView.separatorColor = .customGray
         tableView.register(ItemsCell.self, forCellReuseIdentifier: ItemsCell.identifier)
         return tableView
     }()
