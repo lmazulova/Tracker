@@ -6,4 +6,5 @@
 "delete" = "Удалить";
 "deleteMessage" = "Уверены что хотите удалить этот трекер?";
 "trackers_screen_stub" = "Что будем отслеживать?";
-
+"trackersCompleted" = "Трекеров завершено";
+"statistics_screen_stub" = "Анализировать пока нечего";

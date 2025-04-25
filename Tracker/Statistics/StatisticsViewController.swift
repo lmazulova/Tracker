@@ -63,7 +63,7 @@ final class StatisticsViewController: UIViewController {
     
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "Статистика"
+        label.text = NSLocalizedString("statisticsTitle", comment: "")
         label.font = UIFont.systemFont(ofSize: 34, weight: .bold)
         label.textColor = .customBlack
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -74,7 +74,7 @@ final class StatisticsViewController: UIViewController {
         let stubImageView = UIImageView(image: UIImage(named: "statisticsStub"))
         stubImageView.backgroundColor = .customWhite
         let stubLabel = UILabel()
-        stubLabel.text = "Анализировать пока нечего"
+        stubLabel.text = NSLocalizedString("statistics_screen_stub", comment: "")
         stubLabel.textColor = UIColor.customBlack
         stubLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         
@@ -101,7 +101,7 @@ final class StatisticsViewController: UIViewController {
     private lazy var categoryTitle: UILabel = {
         let title = UILabel()
         title.font = UIFont.systemFont(ofSize: 12, weight: .medium)
-        title.text = "Трекеров завершено"
+        title.text = NSLocalizedString("trackersCompleted", comment: "")
         title.textColor = .customBlack
         title.translatesAutoresizingMaskIntoConstraints = false
         

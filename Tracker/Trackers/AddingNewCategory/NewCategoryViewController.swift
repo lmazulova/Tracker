@@ -80,6 +80,7 @@ final class NewCategoryViewController: UIViewController {
         textView.textContainer.maximumNumberOfLines = 2
         textView.textContainer.heightTracksTextView = true
         textView.textContainer.lineBreakMode = .byTruncatingHead
+        textView.textColor = .customBlack
         
         textView.delegate = self
         
@@ -88,7 +89,8 @@ final class NewCategoryViewController: UIViewController {
         
         let attributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 17, weight: .regular),
-            .paragraphStyle: paragrafStyle
+            .paragraphStyle: paragrafStyle,
+            .foregroundColor: UIColor.customBlack
         ]
         textView.typingAttributes = attributes
         

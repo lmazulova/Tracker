@@ -498,6 +498,7 @@ extension TrackersViewController: UISearchBarDelegate {
         searchBar.resignFirstResponder()
         searchBar.text = ""
         animateCancelButton(visible: false)
+        trackerDataProvider.filterByDate(currentDate)
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {

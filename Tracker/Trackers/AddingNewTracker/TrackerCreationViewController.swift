@@ -128,13 +128,14 @@ final class TrackerCreationViewController: UIViewController {
         textView.textContainer.maximumNumberOfLines = 2
         textView.textContainer.heightTracksTextView = true
         textView.textContainer.lineBreakMode = .byTruncatingHead
-        
+        textView.textColor = .customBlack
         let paragrafStyle = NSMutableParagraphStyle()
         paragrafStyle.lineSpacing = 0
         
         let attributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 17, weight: .regular),
-            .paragraphStyle: paragrafStyle
+            .paragraphStyle: paragrafStyle,
+            .foregroundColor: UIColor.customBlack
         ]
         textView.typingAttributes = attributes
         
