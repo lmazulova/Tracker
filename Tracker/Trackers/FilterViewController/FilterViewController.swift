@@ -23,6 +23,7 @@ final class FilterViewController: UIViewController {
     var todaySelected: (() -> Void)?
     var completedSelected: (() -> Void)?
     var notCompletedSelected: (() -> Void)?
+    var filterSelected: (() -> Void)?
     
     weak var delegate: FilterDelegate?
     
@@ -111,6 +112,9 @@ extension FilterViewController: UITableViewDelegate {
             self.notCompletedSelected?()
         case .today:
             self.todaySelected?()
+        }
+        DispatchQueue.main.async {
+            self.filterSelected?()
         }
         self.dismiss(animated: true)
     }

@@ -108,6 +108,8 @@ final class TrackersViewController: UIViewController {
         collectionView.backgroundColor = .customWhite
         collectionView.delegate = self
         collectionView.dataSource = self
+        collectionView.alwaysBounceVertical = true
+        collectionView.bounces = true
         collectionView.register(TrackerCell.self, forCellWithReuseIdentifier: TrackerCell.identifier)
         collectionView.register(HeaderForSection.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "header")
         return collectionView
@@ -233,6 +235,14 @@ final class TrackersViewController: UIViewController {
         }
     }
     
+    private func checkFilterResult() {
+        let state = trackerDataProvider.numberOfSections > 0
+        searchStubStackView.isHidden = state
+        stubStackView.isHidden = true
+        collectionView.isHidden = !state
+        filterButton.isHidden = false
+    }
+    
     private func setupHeader() {
         view.addSubview(plusButton)
         view.addSubview(selectedDateButton)
@@ -310,6 +320,12 @@ final class TrackersViewController: UIViewController {
         filterViewController.selectedDate = { [weak self] in
             guard let self = self else { return Date()}
             return self.currentDate
+        }
+        filterViewController.filterSelected = { [weak self] in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                self.checkFilterResult()
+            }
         }
     }
     

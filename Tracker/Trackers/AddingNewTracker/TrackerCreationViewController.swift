@@ -410,7 +410,12 @@ final class TrackerCreationViewController: UIViewController {
         textView.text = tracker.title
         deleteButton.isHidden = false
         placeHolderLabel.isHidden = true
-        setupCategory(tracker.category)
+        let category = TrackerCategory(
+            categoryTitle: TrackerStore.shared.findCategoryTitle(by: tracker.originalCategoryID ?? tracker.id),
+            id: tracker.originalCategoryID ?? tracker.id
+        )
+        
+        setupCategory(category)
         if let schedule = tracker.schedule {
             setSchedule(for: schedule)
         }
@@ -480,9 +485,15 @@ final class TrackerCreationViewController: UIViewController {
     
     @objc private func createButtonTapped() {
         if isEditableMode {
-            guard let editableTracker = editableTracker else {
+            guard let editableTracker = editableTracker,
+                  let selectedCategory = selectedCategory
+            else {
                 print("[\(#function)] - Не найден трекер для редактирования.")
                 return
+            }
+            var category = selectedCategory
+            if editableTracker.category.categoryTitle == PinnedCategory.title {
+                category = editableTracker.category
             }
             let editedTracker = Tracker(
                 id: editableTracker.id,
@@ -490,7 +501,9 @@ final class TrackerCreationViewController: UIViewController {
                 color: TrackerAttributes.colors[selectedColorPath?.row ?? 0],
                 emoji: TrackerAttributes.emojis[selectedEmojiPath?.row ?? 0],
                 schedule: schedule,
-                category: selectedCategory ?? TrackerCategory(categoryTitle: "", id: UUID())
+                category: category,
+                isPinned: editableTracker.isPinned,
+                originalCategory: selectedCategory.id
             )
             self.trackerEdited?(editedTracker)
         }

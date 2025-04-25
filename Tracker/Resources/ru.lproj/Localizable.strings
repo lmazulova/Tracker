@@ -1,7 +1,9 @@
 "trackersTitle" = "Трекеры";
+"statisticsTitle" = "Статистика";
 "filter" = "Фильтры";
 "search" = "Поиск";
-"сancel" = "Отменить";
+"cancel" = "Отменить";
 "delete" = "Удалить";
 "deleteMessage" = "Уверены что хотите удалить этот трекер?";
 "trackers_screen_stub" = "Что будем отслеживать?";
+

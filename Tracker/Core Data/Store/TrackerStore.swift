@@ -116,7 +116,7 @@ final class TrackerStore: NSObject {
         }
     }
     
-    private func findCategory(by id: UUID, in context: NSManagedObjectContext) throws -> TrackerCategoryCoreData? {
+    private func findCategory(by id: UUID, with context: NSManagedObjectContext) throws -> TrackerCategoryCoreData? {
         let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", id as NSUUID)
         
@@ -124,9 +124,19 @@ final class TrackerStore: NSObject {
         return category?.first
     }
     
+    func findCategoryTitle(by id: UUID) -> String {
+        let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as NSUUID)
+        
+        if let category = try? context.fetch(request) {
+            return category.first?.categoryTitle ?? ""
+        }
+        return ""
+    }
+    
     private func convertToTrackerCoreData(_ tracker: Tracker, with context: NSManagedObjectContext) throws {
         let trackerCoreData = TrackerCoreData(context: context)
-        trackerCoreData.category = try? findCategory(by: tracker.category.id, in: context)
+        trackerCoreData.category = try? findCategory(by: tracker.category.id, with: context)
         trackerCoreData.color = tracker.color
         trackerCoreData.createdAt = Date()
         trackerCoreData.emoji = tracker.emoji
