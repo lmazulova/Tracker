@@ -29,9 +29,6 @@
 		CEA27FA62DBA81EA00C7F22A /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CEA27FA42DBA81EA00C7F22A /* Localizable.strings */; };
 		CEA27FAD2DBA90CC00C7F22A /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = CEA27FAB2DBA90CC00C7F22A /* Localizable.stringsdict */; };
 		CEA27FB02DBAA42300C7F22A /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA27FAF2DBAA42300C7F22A /* AnalyticsService.swift */; };
-		CEA27FB32DBB0CDB00C7F22A /* InlineSnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = CEA27FB22DBB0CDB00C7F22A /* InlineSnapshotTesting */; };
-		CEA27FB52DBB0CDB00C7F22A /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = CEA27FB42DBB0CDB00C7F22A /* SnapshotTesting */; };
-		CEA27FB72DBB0CDB00C7F22A /* SnapshotTestingCustomDump in Frameworks */ = {isa = PBXBuildFile; productRef = CEA27FB62DBB0CDB00C7F22A /* SnapshotTestingCustomDump */; };
 		CEB00B2B2DA54FC800F703C6 /* OnboardingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB00B2A2DA54FC800F703C6 /* OnboardingViewController.swift */; };
 		CEB00B2D2DA5501400F703C6 /* OnboardingPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB00B2C2DA5500F00F703C6 /* OnboardingPage.swift */; };
 		CECBB6B92DBA52E6007C1DE0 /* FilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CECBB6B82DBA52D9007C1DE0 /* FilterViewController.swift */; };
@@ -137,9 +134,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEA27FB72DBB0CDB00C7F22A /* SnapshotTestingCustomDump in Frameworks */,
-				CEA27FB52DBB0CDB00C7F22A /* SnapshotTesting in Frameworks */,
-				CEA27FB32DBB0CDB00C7F22A /* InlineSnapshotTesting in Frameworks */,
 				98ACD20F1E21841C27444D89 /* Pods_Tracker.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -873,14 +867,6 @@
 				minimumVersion = 1.18.3;
 			};
 		};
-		CEA27FB12DBB0CDB00C7F22A /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/pointfreeco/swift-snapshot-testing";
-			requirement = {
-				kind = exactVersion;
-				version = 1.18.3;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -897,21 +883,6 @@
 		CE7B43802DBB0FBD00005F8C /* SnapshotTestingCustomDump */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = CE7B437B2DBB0FBD00005F8C /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
-			productName = SnapshotTestingCustomDump;
-		};
-		CEA27FB22DBB0CDB00C7F22A /* InlineSnapshotTesting */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = CEA27FB12DBB0CDB00C7F22A /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
-			productName = InlineSnapshotTesting;
-		};
-		CEA27FB42DBB0CDB00C7F22A /* SnapshotTesting */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = CEA27FB12DBB0CDB00C7F22A /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
-			productName = SnapshotTesting;
-		};
-		CEA27FB62DBB0CDB00C7F22A /* SnapshotTestingCustomDump */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = CEA27FB12DBB0CDB00C7F22A /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
 			productName = SnapshotTestingCustomDump;
 		};
 /* End XCSwiftPackageProductDependency section */

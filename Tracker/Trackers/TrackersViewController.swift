@@ -7,6 +7,7 @@ final class TrackersViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        UserDefaults.standard.set(FilterModes.all.rawValue, forKey: "filter")
         view.backgroundColor = .customWhite
         analyticsService.report(event: Event.open, screen: Screen.main)
         setupUI()
@@ -110,6 +111,7 @@ final class TrackersViewController: UIViewController {
         collectionView.dataSource = self
         collectionView.alwaysBounceVertical = true
         collectionView.bounces = true
+        collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 50, right: 0)
         collectionView.register(TrackerCell.self, forCellWithReuseIdentifier: TrackerCell.identifier)
         collectionView.register(HeaderForSection.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "header")
         return collectionView
@@ -227,20 +229,18 @@ final class TrackersViewController: UIViewController {
             collectionView.isHidden = !state
             filterButton.isHidden = true
         }
-        else {
+        else if UserDefaults.standard.string(forKey: "filter") == FilterModes.all.rawValue {
             filterButton.isHidden = !state
             stubStackView.isHidden = state
             searchStubStackView.isHidden = true
             collectionView.isHidden = !state
         }
-    }
-    
-    private func checkFilterResult() {
-        let state = trackerDataProvider.numberOfSections > 0
-        searchStubStackView.isHidden = state
-        stubStackView.isHidden = true
-        collectionView.isHidden = !state
-        filterButton.isHidden = false
+        else {
+            searchStubStackView.isHidden = state
+            stubStackView.isHidden = true
+            collectionView.isHidden = !state
+            filterButton.isHidden = false
+        }
     }
     
     private func setupHeader() {
@@ -301,30 +301,12 @@ final class TrackersViewController: UIViewController {
     
     private func bind() {
         guard let filterViewController = filterViewController else { return }
-        filterViewController.allSelected = { [weak self] in
-            guard let self = self else { return }
-            self.filterButton.titleLabel?.textColor = .white
-        }
-        filterViewController.todaySelected = { [weak self] in
-            guard let self = self else { return }
-            self.filterButton.titleLabel?.textColor = .colorSelection11
-        }
-        filterViewController.completedSelected = { [weak self] in
-            guard let self = self else { return }
-            self.filterButton.titleLabel?.textColor = .colorSelection11
-        }
-        filterViewController.notCompletedSelected = { [weak self] in
-            guard let self = self else { return }
-            self.filterButton.titleLabel?.textColor = .colorSelection11
-        }
-        filterViewController.selectedDate = { [weak self] in
-            guard let self = self else { return Date()}
-            return self.currentDate
-        }
+      
         filterViewController.filterSelected = { [weak self] in
             guard let self = self else { return }
+            self.trackerDataProvider.filterByDate(currentDate)
             DispatchQueue.main.async {
-                self.checkFilterResult()
+                self.updateUI()
             }
         }
     }
@@ -333,7 +315,6 @@ final class TrackersViewController: UIViewController {
         guard let filterViewController = filterViewController else {
             filterViewController = FilterViewController()
             if let filterViewController = filterViewController {
-                filterViewController.delegate = TrackerStore.shared
                 self.bind()
                 present(filterViewController, animated: true)
             }

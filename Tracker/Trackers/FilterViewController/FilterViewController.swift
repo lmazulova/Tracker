@@ -12,20 +12,8 @@ protocol FilterDelegate: AnyObject {
 }
 
 final class FilterViewController: UIViewController {
-    private var selectedMode: FilterModes {
-        return filters.filter{ $0.isSelected }.first?.mode ?? .all
-    }
-    
-    var selectedDate: (() -> Date)?
-    
-//  Действия которые должен делать TrackersViewController при установке фильтра
-    var allSelected: (() -> Void)?
-    var todaySelected: (() -> Void)?
-    var completedSelected: (() -> Void)?
-    var notCompletedSelected: (() -> Void)?
+
     var filterSelected: (() -> Void)?
-    
-    weak var delegate: FilterDelegate?
     
     private var filters: [FilterCellModel] = [
         FilterCellModel(mode: FilterModes.all, isSelected: false),
@@ -33,6 +21,16 @@ final class FilterViewController: UIViewController {
         FilterCellModel(mode: FilterModes.completed, isSelected: false),
         FilterCellModel(mode: FilterModes.notCompleted, isSelected: false)
     ]
+    
+    private func setupFilters() {
+        guard let savedFilter = UserDefaults.standard.string(forKey: "filter") else { return }
+        
+        filters = filters.map { filter in
+            var modifiedFilter = filter
+            modifiedFilter.isSelected = (filter.mode.rawValue == savedFilter)
+            return modifiedFilter
+        }
+    }
     
     private lazy var tableView: UITableView = {
         let tableView = UITableView()
@@ -47,6 +45,10 @@ final class FilterViewController: UIViewController {
         tableView.dataSource = self
         tableView.separatorColor = .customGray
         tableView.allowsMultipleSelection = false
+        if let selectedIndex = filters.firstIndex(where: { $0.mode.rawValue == UserDefaults.standard.string(forKey: "filter")}) {
+            let indexPath = IndexPath(row: selectedIndex, section: 0)
+            tableView.selectRow(at: indexPath, animated: false, scrollPosition: .none)
+        }
         
         return tableView
     }()
@@ -59,6 +61,7 @@ final class FilterViewController: UIViewController {
         view.backgroundColor = .customWhite
         setupNavigationBar()
         setupConstraints()
+        setupFilters()
     }
     
     private func setupConstraints() {
@@ -96,23 +99,9 @@ extension FilterViewController: UITableViewDelegate {
         guard let cell = tableView.cellForRow(at: indexPath) as? FilterCell else {
             return
         }
-        filters[indexPath.row].isSelected = true
+        UserDefaults.standard.set(filters[indexPath.row].mode.rawValue, forKey: "filter")
+        setupFilters()
         cell.setup(with: filters[indexPath.row])
-        guard let selectedDate = selectedDate else {
-            print("[\(#function)] - Текущая дата не указана.")
-            return
-        }
-        delegate?.filterTracker(with: selectedMode, date: selectedDate())
-        switch selectedMode {
-        case .all:
-            self.allSelected?()
-        case .completed:
-            self.completedSelected?()
-        case .notCompleted:
-            self.notCompletedSelected?()
-        case .today:
-            self.todaySelected?()
-        }
         DispatchQueue.main.async {
             self.filterSelected?()
         }
@@ -121,7 +110,6 @@ extension FilterViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
         if let cell = tableView.cellForRow(at: indexPath) {
-            filters[indexPath.row].isSelected = false
             cell.accessoryType = .none
         }
     }
@@ -137,7 +125,7 @@ extension FilterViewController: UITableViewDataSource {
         else {
             return UITableViewCell()
         }
-        
+        setupFilters()
         let cellViewModel = filters[indexPath.row]
         cell.setup(with: cellViewModel)
         

@@ -316,7 +316,37 @@ extension TrackerStore: TrackerDataProviderProtocol {
             return
         }
         
-        let predicate = NSPredicate(format: "(schedule & %d != 0) OR (schedule == 0 AND createdAt >= %@ AND createdAt < %@)", dayMask, startOfDay, endOfDay)
+        var predicate = NSPredicate(format: "(schedule & %d != 0) OR (schedule == 0 AND createdAt >= %@ AND createdAt < %@)", dayMask, startOfDay, endOfDay)
+        
+        if let mode = UserDefaults.standard.string(forKey: "filter") {
+            switch mode {
+            case FilterModes.all.rawValue:
+                predicate = NSPredicate(format: "(schedule & %d != 0) OR (schedule == 0 AND createdAt >= %@ AND createdAt < %@)", dayMask, startOfDay, endOfDay)
+            case FilterModes.completed.rawValue:
+                let completedTrackerId = TrackerRecordStore.shared.completedTrackersId(date: date)
+                if let completedTrackerId = completedTrackerId {
+                    predicate = NSPredicate(format: "((schedule & %d != 0) OR (schedule == 0 AND createdAt >= %@ AND createdAt < %@)) AND (id IN %@)", dayMask, startOfDay, endOfDay, completedTrackerId)
+                }
+                else if completedTrackerId == nil {
+                    predicate = NSPredicate(format: "FALSEPREDICATE")
+                }
+            case FilterModes.notCompleted.rawValue:
+                let completedTrackerId = TrackerRecordStore.shared.completedTrackersId(date: date)
+                if let completedTrackerId = completedTrackerId {
+                    predicate = NSPredicate(format: "((schedule & %d != 0) OR (schedule == 0 AND createdAt >= %@ AND createdAt < %@)) AND NOT(id IN %@)", dayMask, startOfDay, endOfDay, completedTrackerId)
+                }
+            default:
+                let startOfDay = Calendar.current.startOfDay(for: Date()) as NSDate
+                let selectedWeekDay = weekDays[Calendar.current.component(.weekday, from: Date()) - 1].bitValue
+                let dayMask = Int16(selectedWeekDay)
+                guard let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay as Date) as? NSDate else {
+                    print("[\(#function)] - ошибка фильтрации.")
+                    return
+                }
+                predicate = NSPredicate(format: "(schedule & %d != 0) OR (schedule == 0 AND createdAt >= %@ AND createdAt < %@)", dayMask, startOfDay, endOfDay)
+            }
+        }
+        
         fetchedResultController.fetchRequest.predicate = predicate
         
         do {
@@ -345,47 +375,6 @@ extension TrackerStore: TrackerDataProviderProtocol {
         catch {
             print("[\(#function)] - ошибка фильтрации")
         }
-    }
-    
-    func filterByCompleteness(isCompleted: Bool, date: Date) {
-        let weekDays: [WeekDay] = [.Sunday, .Monday, .Tuesday, .Wednesday, .Thursday, .Friday, .Saturday]
-        
-        let selectedWeekDay = weekDays[Calendar.current.component(.weekday, from: date) - 1].bitValue
-        let dayMask = Int16(selectedWeekDay)
-        let startOfDay = Calendar.current.startOfDay(for: date) as NSDate
-        guard let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay as Date) as? NSDate else {
-            print("[\(#function)] - ошибка фильтрации.")
-            return
-        }
-        
-        let completedTrackerId = TrackerRecordStore.shared.completedTrackersId(date: date)
-        var predicate = NSPredicate()
-        if let completedTrackerId = completedTrackerId {
-            if isCompleted {
-                predicate = NSPredicate(format: "((schedule & %d != 0) OR (schedule == 0 AND createdAt >= %@ AND createdAt < %@)) AND (id IN %@)", dayMask, startOfDay, endOfDay, completedTrackerId)
-            } else {
-                predicate = NSPredicate(format: "((schedule & %d != 0) OR (schedule == 0 AND createdAt >= %@ AND createdAt < %@)) AND NOT(id IN %@)", dayMask, startOfDay, endOfDay, completedTrackerId)
-            }
-        }
-        else if completedTrackerId == nil {
-            if !isCompleted {
-                predicate = NSPredicate(format: "((schedule & %d != 0) OR (schedule == 0 AND createdAt >= %@ AND createdAt < %@))", dayMask, startOfDay, endOfDay)
-            } else {
-                predicate = NSPredicate(format: "FALSEPREDICATE")
-            }
-        }
-        
-        fetchedResultController.fetchRequest.predicate = predicate
-        do {
-            try fetchedResultController.performFetch()
-            DispatchQueue.main.async {
-                self.delegate?.collectionFullReload()
-            }
-        }
-        catch {
-            print("[\(#function)] - ошибка фильтрации.")
-        }
-
     }
 }
 
@@ -437,21 +426,6 @@ extension TrackerStore: NSFetchedResultsControllerDelegate {
             trackerStoreUpdate.insertedSections.insert(sectionIndex)
         default:
             break
-        }
-    }
-}
-
-extension TrackerStore: FilterDelegate {
-    func filterTracker(with mode: FilterModes, date: Date) {
-        switch mode {
-        case .all:
-            filterByDate(date)
-        case .today:
-            filterByDate(Date())
-        case .completed:
-            filterByCompleteness(isCompleted: true, date: date)
-        case .notCompleted:
-            filterByCompleteness(isCompleted: false, date: date)
         }
     }
 }
