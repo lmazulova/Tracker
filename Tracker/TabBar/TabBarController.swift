@@ -4,7 +4,7 @@ final class TabBarController: UITabBarController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        overrideUserInterfaceStyle = .light
+        overrideUserInterfaceStyle = .unspecified
         setupTabBar()
     }
     
@@ -22,13 +22,13 @@ final class TabBarController: UITabBarController {
         let trackerViewController = TrackersViewController()
         let statisticsViewController = StatisticsViewController()
         trackerViewController.tabBarItem = UITabBarItem(
-            title: "Трекеры",
+            title: NSLocalizedString("trackersTitle", comment: ""),
             image: UIImage(named: "trackerItem"),
             selectedImage: nil
         )
         
         statisticsViewController.tabBarItem = UITabBarItem(
-            title: "Статистика",
+            title: NSLocalizedString("statisticsTitle", comment: ""),
             image: UIImage(named: "statisticsItem"),
             selectedImage: nil
         )

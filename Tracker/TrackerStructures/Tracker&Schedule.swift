@@ -7,14 +7,18 @@ struct Tracker {
     let emoji: String
     let schedule: Set<WeekDay>?
     let category: TrackerCategory
+    let isPinned: Bool
+    let originalCategoryID: UUID?
     
-    init(id: UUID = UUID(), title: String, color: UIColor, emoji: String, schedule: Set<WeekDay>?, category: TrackerCategory) {
+    init(id: UUID = UUID(), title: String, color: UIColor, emoji: String, schedule: Set<WeekDay>?, category: TrackerCategory, isPinned: Bool = false, originalCategory: UUID? = nil) {
         self.id = id
         self.title = title
         self.color = color
         self.emoji = emoji
         self.schedule = schedule
         self.category = category
+        self.isPinned = isPinned
+        self.originalCategoryID = originalCategory
     }
 }
 

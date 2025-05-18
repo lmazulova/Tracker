@@ -9,6 +9,7 @@ final class TrackerSelectionViewController: UIViewController {
         button.layer.cornerRadius = 16
         button.setTitle(ControllersIdentifier.habit.rawValue, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        button.setTitleColor(.customWhite, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -19,6 +20,7 @@ final class TrackerSelectionViewController: UIViewController {
         button.layer.cornerRadius = 16
         button.setTitle(ControllersIdentifier.irregularEvent.rawValue, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        button.setTitleColor(.customWhite, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()

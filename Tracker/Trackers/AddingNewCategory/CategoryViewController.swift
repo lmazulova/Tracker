@@ -28,6 +28,7 @@ final class CategoryViewController: UIViewController {
         tableView.rowHeight = 75
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        tableView.separatorColor = .customGray
         tableView.register(CategoryCell.self, forCellReuseIdentifier: CategoryCell.identifier)
         tableView.delegate = self
         tableView.dataSource = self
@@ -86,7 +87,7 @@ final class CategoryViewController: UIViewController {
         button.setTitle("Добавить категорию", for: .normal)
         button.layer.cornerRadius = 16
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        button.titleLabel?.textColor = .customWhite
+        button.setTitleColor(.customWhite, for: .normal)
         button.backgroundColor = .customBlack
         
         button.addTarget(self, action: #selector(addCategory), for: .touchUpInside)
@@ -96,8 +97,8 @@ final class CategoryViewController: UIViewController {
     
     //MARK: - Public Methods
     
-    func addNewCategory(with title: String) {
-        viewModel.addRecord(with: title)
+    func addNewCategory(_ category: TrackerCategory) {
+        viewModel.addRecord(category: category)
     }
     
     //MARK: - Bindings
@@ -111,7 +112,7 @@ final class CategoryViewController: UIViewController {
         }
     }
     
-    var setupCategoryTitle: Binding<String>?
+    var setupCategory: Binding<TrackerCategory>?
     
     //MARK: - Lifecycle Methods
     override func viewDidLoad() {
@@ -185,7 +186,8 @@ final class CategoryViewController: UIViewController {
         // newCategoryController высвобождается из памяти при каждом вызове dismiss внутри себя, поэтому уместно каждый раз создавать его заново
         let newCategoryController = NewCategoryViewController()
         newCategoryController.updateCategories = { [weak self] title in
-            self?.addNewCategory(with: title)
+            let category = TrackerCategory(categoryTitle: title, id: UUID())
+            self?.addNewCategory(category)
         }
         present(newCategoryController, animated: true)
     }
@@ -201,7 +203,7 @@ extension CategoryViewController: UITableViewDelegate {
         }
         viewModel.selectCategory(at: indexPath.row)
         cell.setup(with: viewModel.category(at: indexPath.row))
-        setupCategoryTitle?(viewModel.selectedCategoryTitle ?? "")
+        setupCategory?(viewModel.selectedCategory ?? TrackerCategory(categoryTitle: "", id: UUID()))
         self.dismiss(animated: true)
     }
     

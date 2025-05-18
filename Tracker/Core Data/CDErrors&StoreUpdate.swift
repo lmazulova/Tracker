@@ -15,8 +15,10 @@ enum CoreDataErrors: Error {
 // MARK: - TrackerStoreUpdate
 
 struct TrackerStoreUpdate {
-    let insertedIndexes: Set<IndexPath>
-    let deletedIndexes: Set<IndexPath>
+    var insertedSections: IndexSet
+    var deletedSections: IndexSet
+    var insertedIndexes: Set<IndexPath>
+    var deletedIndexes: Set<IndexPath>
 }
 
 

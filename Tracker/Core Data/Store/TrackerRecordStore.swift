@@ -1,18 +1,19 @@
 import UIKit
 import CoreData
 
-final class TrackerRecordStore {
+final class TrackerRecordStore: NSObject {
     
     // MARK: - Init
     static let shared = TrackerRecordStore()
+    weak var delegate: StatisticsViewController?
     
     let context: NSManagedObjectContext
-    
+
     init(context: NSManagedObjectContext) {
         self.context = context
     }
 
-    convenience init() {
+    override convenience init() {
         if let context = (UIApplication.shared.delegate as? AppDelegate)?.persistentContainer.viewContext {
             self.init(context: context)
         } else {
@@ -55,6 +56,9 @@ final class TrackerRecordStore {
                 try context.save()
             }
         }
+        DispatchQueue.main.async {
+            self.delegate?.updateUI()
+        }
     }
     
     func trackerIsCompleted(_ record: TrackerRecord) -> Bool {
@@ -64,7 +68,7 @@ final class TrackerRecordStore {
                     let trackerRecordFetch = TrackerRecordCoreData.fetchRequest()
                     trackerRecordFetch.predicate = NSPredicate(format: "id == %@ AND date == %@", record.id as NSUUID, record.date as NSDate)
                     let result = try context.fetch(trackerRecordFetch)
-                    
+    
                     if result.isEmpty {
                         return false
                     }
@@ -95,6 +99,51 @@ final class TrackerRecordStore {
         catch {
             print("Ошибка при подсчете записей: \(error.localizedDescription)")
             return 0
+        }
+    }
+    
+    func numberOfCompletedTrackers() -> Int {
+        do {
+            return try performSync { context in
+                Result {
+                    let trackerRecordFetch = TrackerRecordCoreData.fetchRequest()
+                    trackerRecordFetch.resultType = .countResultType
+                    let result = try context.count(for: trackerRecordFetch)
+                    return result
+                }
+            }
+        }
+        catch {
+            print("Ошибка при подсчете записей: \(error.localizedDescription)")
+            return 0
+        }
+    }
+    
+    func completedTrackersId(date: Date) -> [UUID]? {
+        do {
+            return try performSync { context in
+                Result {
+                    let currentDate = Calendar.current.startOfDay(for: date)
+                    let trackerRecordFetch = TrackerRecordCoreData.fetchRequest()
+                    trackerRecordFetch.predicate = NSPredicate(format: "date == %@", currentDate as NSDate)
+                    let result = try context.fetch(trackerRecordFetch)
+                    
+                    if result.isEmpty {
+                        return nil
+                    }
+                    else {
+                        return result.compactMap { record in
+                            guard let id = record.id else { return nil }
+                            return id
+                        }
+                    }
+                }
+            }
+        }
+        
+        catch {
+            print("[\(#function)] - Ошибка нахождения записей: \(error.localizedDescription)")
+            return nil
         }
     }
 }

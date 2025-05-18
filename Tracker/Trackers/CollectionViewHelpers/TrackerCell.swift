@@ -4,8 +4,9 @@ final class TrackerCell: UICollectionViewCell {
     static let identifier = "trackerCell"
     var trackerID: UUID?
     var daysAmount: Int = 0
-    
+    private var isPinned = false
     weak var delegate: TrackerCellDelegate?
+    private let analyticsService = AnalyticsService()
     
     // MARK: - Initialization
     override init(frame: CGRect) {
@@ -18,7 +19,14 @@ final class TrackerCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    
+    // MARK: - Interaction
+    
+    private lazy var interaction = UIContextMenuInteraction(delegate: self)
+    
     // MARK: - Private Properties
+    
+    private var daysString: String { return String.localizedStringWithFormat(NSLocalizedString("numberOfDays", comment: "number of days in which the task was completed"), daysAmount) }
     private let card: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 16
@@ -29,7 +37,7 @@ final class TrackerCell: UICollectionViewCell {
     private let cardText: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
-        label.textColor = .customWhite
+        label.textColor = .white
         label.numberOfLines = 0
         label.lineBreakMode = .byWordWrapping
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -83,6 +91,14 @@ final class TrackerCell: UICollectionViewCell {
         return button
     }()
     
+    private lazy var pinView: UIImageView = {
+        let image = UIImage(named: "pin")
+        let imageView = UIImageView(image: image)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.isHidden = !isPinned
+        return imageView
+    }()
+    
     // MARK: - Private Methods
     private func updateDayCounterLabel() {
         if plusButton.isSelected {
@@ -91,25 +107,7 @@ final class TrackerCell: UICollectionViewCell {
         else {
             daysAmount -= 1
         }
-        dayCounterLabel.text = daysString()
-    }
-    
-    private func daysString() -> String {
-        let lastDigit = daysAmount % 10
-        let lastTwoDigits = daysAmount % 100
-        
-        let word: String
-        if lastTwoDigits >= 11 && lastTwoDigits <= 14 {
-            word = "дней"
-        } else if lastDigit == 1 {
-            word = "день"
-        } else if lastDigit >= 2 && lastDigit <= 4 {
-            word = "дня"
-        } else {
-            word = "дней"
-        }
-        
-        return "\(daysAmount) \(word)"
+        dayCounterLabel.text = daysString
     }
     
     private func setupCellConstraints() {
@@ -120,12 +118,17 @@ final class TrackerCell: UICollectionViewCell {
         card.addSubview(cardText)
         card.addSubview(emojiView)
         card.addSubview(emojiLabel)
+        card.addSubview(pinView)
         
         NSLayoutConstraint.activate([
             card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             card.topAnchor.constraint(equalTo: contentView.topAnchor),
             card.heightAnchor.constraint(equalTo: contentView.heightAnchor, multiplier: 0.61),
+            pinView.topAnchor.constraint(equalTo: card.topAnchor, constant: 18),
+            pinView.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
+            pinView.heightAnchor.constraint(equalToConstant: 12),
+            pinView.widthAnchor.constraint(equalToConstant: 8),
             cardText.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
             cardText.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
             cardText.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12),
@@ -158,7 +161,11 @@ final class TrackerCell: UICollectionViewCell {
         plusButton.isSelected = plusButtonState
         plusButton.isEnabled = (currentDate <= Calendar.current.startOfDay(for: Date()))
         plusButton.backgroundColor = plusButtonState ? tracker.color.withAlphaComponent(0.3) : tracker.color
-        dayCounterLabel.text = daysString()
+        dayCounterLabel.text = daysString
+        isPinned = tracker.isPinned
+        pinView.isHidden = !isPinned
+        //Interaction
+        card.addInteraction(interaction)
     }
     
     // MARK: - Actions
@@ -167,6 +174,61 @@ final class TrackerCell: UICollectionViewCell {
         plusButton.backgroundColor = plusButton.isSelected ? plusButton.backgroundColor?.withAlphaComponent(0.3) : plusButton.backgroundColor?.withAlphaComponent(1)
         guard let id = trackerID else { return }
         delegate?.updateCompletedTrackers(for: id)
+        analyticsService.report(event: .click, screen: .main, item: .track)
         updateDayCounterLabel()
+    }
+    
+    var pinHandle: Binding<UUID>?
+    var editHandle: Binding<String>?
+    var deleteHandle: Binding<UUID>?
+    
+    private func pinTracker(with id: UUID) {
+        self.pinHandle?(id)
+        pinView.isHidden.toggle()
+        isPinned.toggle()
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        interactions
+            .filter { $0 is UIContextMenuInteraction }
+            .forEach{ self.removeInteraction($0) }
+        deleteHandle = nil
+    }
+}
+
+extension TrackerCell: UIContextMenuInteractionDelegate {
+    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+        let configuration = UIContextMenuConfiguration(
+            identifier: nil,
+            previewProvider: nil,
+            actionProvider: { _ in
+                let pinAction = UIAction(title: self.isPinned == true ? "Открепить" : "Закрепить") { [weak self] _ in
+                    guard let self = self,
+                          let id = trackerID else {
+                        print("[\(#function)] - Трекер для закрепления не найден")
+                        return
+                    }
+                    self.pinTracker(with: id)
+                }
+                let editAction = UIAction(title: "Редактировать") { [weak self] _ in
+                    guard let self = self else { return }
+                    analyticsService.report(event: .click, screen: .main, item: .edit)
+                    self.editHandle?(daysString)
+                }
+                let deleteAction = UIAction(title: "Удалить", attributes: [.destructive]) { [weak self] _ in
+                    guard let self = self,
+                          let id = trackerID
+                    else {
+                        print("[\(#function)] - Трекер для удаления не найден")
+                        return
+                    }
+                    analyticsService.report(event: .click, screen: .main, item: .delete)
+                    self.deleteHandle?(id)
+                }
+                return UIMenu(children: [pinAction, editAction, deleteAction])
+            }
+        )
+        return configuration
     }
 }

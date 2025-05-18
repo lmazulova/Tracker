@@ -1,0 +1,10 @@
+"trackersTitle" = "Trackers";
+"statisticsTitle" = "Statistics";
+"filter" = "Filters";
+"search" = "Search";
+"cancel" = "Cancel";
+"delete" = "Delete";
+"deleteMessage" = "Are you sure you want to delete this tracker?";
+"trackers_screen_stub" = "What will we track?";
+"trackersCompleted" = "Trackers completed";
+"statistics_screen_stub" = "There is nothing to analyze yet";
